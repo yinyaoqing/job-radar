@@ -31,5 +31,6 @@ the next crawl rebuilds the open postings.
 
 ## Secrets
 
-None yet. LLM extraction (week 2) adds `ANTHROPIC_API_KEY`, kept in the host's
-environment; the repo only has `.env.example`.
+Kept in `/opt/job-radar/.env` on the host (see `.env.example`); `daily.sh` passes it to
+each container with `--env-file`. Without `ANTHROPIC_API_KEY` the run skips extraction;
+without `SMTP_HOST` it skips the email.

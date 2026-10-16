@@ -10,6 +10,7 @@ job-radar companies list
 job-radar crawl                      # fetch every watched board, open/close postings
 job-radar extract [--limit N] [--max-cost USD]  # LLM extraction of new remote postings
 job-radar postings [--category C] [--eligible] [--all-modes]  # open postings in the database
+job-radar digest [--send]            # daily email: new postings you can apply to
 job-radar eval regions [--live]      # region trap eval (rules offline; --live calls the LLM)
 job-radar export --out feed.json     # public JSON feed (fully remote, all domains)
 
@@ -85,6 +86,9 @@ def main(argv: list[str] | None = None) -> int:
         "--retry-failed", action="store_true", help="try refused/failed postings again"
     )
 
+    p_digest = sub.add_parser("digest", help="daily email of new postings you can apply to")
+    p_digest.add_argument("--send", action="store_true", help="send it (needs SMTP_* settings)")
+
     p_eval = sub.add_parser("eval", help="run an eval set")
     p_eval.add_argument("suite", choices=["regions"])
     p_eval.add_argument(
@@ -129,6 +133,8 @@ def main(argv: list[str] | None = None) -> int:
             return _postings_command(args, store)
         if args.command == "extract":
             return _extract_command(args, store)
+        if args.command == "digest":
+            return _digest_command(args, store)
         return _export_command(args, store)
     finally:
         store.close()
@@ -335,6 +341,26 @@ def _eval_command(args: argparse.Namespace) -> int:
         args.out.parent.mkdir(parents=True, exist_ok=True)
         args.out.write_text(json.dumps(summary, ensure_ascii=False, indent=2), encoding="utf-8")
     return 0 if summary["passed"] else 1
+
+
+def _digest_command(args: argparse.Namespace, store) -> int:
+    from . import digest
+
+    categories = {
+        c.strip() for c in os.environ.get("JOB_RADAR_CATEGORIES", "").split(",") if c.strip()
+    }
+    result = digest.run(
+        store,
+        candidate=_candidate(),
+        categories=categories or None,
+        now=_now(),
+        env=os.environ,
+        deliver=args.send,
+    )
+    print(result["text"], end="")
+    if args.send:
+        print(f"sent to {os.environ['DIGEST_TO']}", file=sys.stderr)
+    return 0
 
 
 def _sample_command() -> int:
