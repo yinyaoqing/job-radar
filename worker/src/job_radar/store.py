@@ -291,6 +291,16 @@ class Store:
             params = (work_mode,)
         return self.db.execute(sql + " ORDER BY p.first_seen_at DESC, p.id DESC", params).fetchall()
 
+    def posting_by_key(self, key: str) -> sqlite3.Row | None:
+        """A posting by the feed's id, ``ats:org:job_id``."""
+        ats, org, job_id = key.split(":", 2)
+        return self.db.execute(
+            """SELECT p.*, c.name AS company FROM postings p
+               JOIN companies c ON c.id = p.company_id
+               WHERE c.ats = ? AND c.ats_org = ? AND p.ats_job_id = ?""",
+            (ats, org, job_id),
+        ).fetchone()
+
     # --- extractions --------------------------------------------------------
 
     def pending_extractions(self, schema_version: int, limit: int) -> list[sqlite3.Row]:

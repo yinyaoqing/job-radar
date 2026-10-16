@@ -1,0 +1,48 @@
+# Evidence store format, filled with a FICTIONAL person. Keep your real one in
+# private/evidence.yaml (gitignored) and pass it with `job-radar cv --evidence`.
+#
+# Every claim must be something you can show (a repo, a link, a reference). The CV
+# generator may only reword these; the lint fails any sentence that cites nothing.
+
+profile:
+  name: Alex Chen
+  headline: Senior Frontend Engineer
+  email: alex.chen@example.com
+  location: Taipei, Taiwan (UTC+8)
+  links:
+    - https://github.com/example-alex
+  education:
+    - B.S. Computer Science, Example University
+
+# Technologies you have NOT used. Any of these in a CV fails the lint.
+never_claim:
+  - Kubernetes
+  - Rust
+  - Angular
+
+evidence:
+  - id: e1
+    role: Frontend Engineer, Example Commerce (2022–2026)
+    claim: Rebuilt the checkout flow in React and TypeScript, cutting page load from 4.1s to 1.6s.
+    tags: [react, typescript, performance, frontend]
+    source: https://example.com/case-study/checkout
+  - id: e2
+    role: Frontend Engineer, Example Commerce (2022–2026)
+    claim: Led the migration of 120 pages from a legacy Vue 2 app to Next.js.
+    tags: [next.js, vue, migration, frontend]
+  - id: e3
+    role: Frontend Engineer, Example Commerce (2022–2026)
+    claim: Built a component library with Storybook used by 4 product teams.
+    tags: [design systems, storybook, react]
+  - id: e4
+    role: Software Engineer, Example Studio (2019–2022)
+    claim: Wrote Node.js APIs backed by PostgreSQL for a booking product with 30k monthly users.
+    tags: [node.js, postgresql, api, backend]
+  - id: e5
+    role: Software Engineer, Example Studio (2019–2022)
+    claim: Added Playwright end-to-end tests to CI, reaching 85% coverage of critical paths.
+    tags: [testing, playwright, ci]
+  - id: e6
+    role: Open source
+    claim: Maintains an open-source date-picker library with 2k GitHub stars.
+    tags: [open source, typescript, accessibility]

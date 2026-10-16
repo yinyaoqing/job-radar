@@ -86,6 +86,12 @@ def main(argv: list[str] | None = None) -> int:
         "--retry-failed", action="store_true", help="try refused/failed postings again"
     )
 
+    p_cv = sub.add_parser("cv", help="tailored CV draft + application notes for one posting")
+    p_cv.add_argument("posting", help="feed id, ats:org:job_id")
+    p_cv.add_argument("--evidence", type=Path, required=True, help="evidence store YAML")
+    p_cv.add_argument("--out", type=Path, default=Path("../private/cvs"))
+    p_cv.add_argument("--pdf", action="store_true", help="also print a PDF with Chrome")
+
     p_digest = sub.add_parser("digest", help="daily email of new postings you can apply to")
     p_digest.add_argument("--send", action="store_true", help="send it (needs SMTP_* settings)")
 
@@ -135,6 +141,8 @@ def main(argv: list[str] | None = None) -> int:
             return _extract_command(args, store)
         if args.command == "digest":
             return _digest_command(args, store)
+        if args.command == "cv":
+            return _cv_command(args, store)
         return _export_command(args, store)
     finally:
         store.close()
@@ -341,6 +349,36 @@ def _eval_command(args: argparse.Namespace) -> int:
         args.out.parent.mkdir(parents=True, exist_ok=True)
         args.out.write_text(json.dumps(summary, ensure_ascii=False, indent=2), encoding="utf-8")
     return 0 if summary["passed"] else 1
+
+
+def _cv_command(args: argparse.Namespace, store) -> int:
+    from . import cv
+    from .extract import SCHEMA_VERSION
+
+    row = store.posting_by_key(args.posting)
+    if row is None:
+        print(f"error: no posting {args.posting}", file=sys.stderr)
+        return 2
+    evidence = cv.EvidenceStore.load(args.evidence)
+    posting = {"title": row["title"], "company": row["company"], "url": row["url"]}
+    out_dir = args.out / args.posting.replace(":", "_")
+    result = cv.generate(
+        posting,
+        store.latest_extraction(row["id"], SCHEMA_VERSION),
+        evidence,
+        cv.claude_writer(),
+        out_dir,
+        pdf=args.pdf,
+    )
+    lint = result.lint.as_dict()
+    verdict = "PASS" if lint["passed"] else "FAIL"
+    print(f"{verdict}  {out_dir}  evidence {', '.join(result.evidence_used)}")
+    for key in ("uncited", "unknown_ids", "never_claim_hits", "unsupported_skills"):
+        if lint[key]:
+            print(f"  {key}: {lint[key]}")
+    if lint["pages"] is not None:
+        print(f"  pages: {lint['pages']}")
+    return 0 if lint["passed"] else 1
 
 
 def _digest_command(args: argparse.Namespace, store) -> int:
