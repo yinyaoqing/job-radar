@@ -91,11 +91,23 @@ def main(argv: list[str] | None = None) -> int:
         "--live", action="store_true", help="extract with the LLM (costs API calls)"
     )
     p_eval.add_argument("--out", type=Path, help="write the report as JSON")
+    p_eval.add_argument(
+        "--write-web-fixture",
+        action="store_true",
+        help="regenerate web/lib/__fixtures__/region-traps.json from the cases",
+    )
 
     p_export = sub.add_parser("export", help="write the public JSON feed")
     p_export.add_argument("--out", type=Path, default=Path("public/feed.json"))
+    p_export.add_argument(
+        "--sample",
+        action="store_true",
+        help="write the fictional demo feed to web/public/sample-feed.json instead",
+    )
 
     args = parser.parse_args(argv)
+    if getattr(args, "sample", False):
+        return _sample_command()
     # Windows consoles (cp950) cannot print every title character; never crash on output.
     sys.stdout.reconfigure(errors="replace")
     sys.stderr.reconfigure(errors="replace")
@@ -297,6 +309,14 @@ def _eval_command(args: argparse.Namespace) -> int:
     from .evaluate import load_cases, run_live, run_rules
 
     cases = load_cases()
+    if args.write_web_fixture:
+        from .evaluate import WEB_FIXTURE, web_fixture
+
+        WEB_FIXTURE.parent.mkdir(parents=True, exist_ok=True)
+        WEB_FIXTURE.write_text(
+            json.dumps(web_fixture(cases), ensure_ascii=False, indent=2) + "\n", encoding="utf-8"
+        )
+        print(f"wrote {WEB_FIXTURE}")
     if args.live:
         from .extract import EXTRACT_MODEL, claude_extractor
 
@@ -315,6 +335,18 @@ def _eval_command(args: argparse.Namespace) -> int:
         args.out.parent.mkdir(parents=True, exist_ok=True)
         args.out.write_text(json.dumps(summary, ensure_ascii=False, indent=2), encoding="utf-8")
     return 0 if summary["passed"] else 1
+
+
+def _sample_command() -> int:
+    import json
+
+    from .sample import SAMPLE_FEED, build_sample_feed
+
+    feed = build_sample_feed()
+    SAMPLE_FEED.parent.mkdir(parents=True, exist_ok=True)
+    SAMPLE_FEED.write_text(json.dumps(feed, ensure_ascii=False, indent=1) + "\n", encoding="utf-8")
+    print(f"{feed['count']} sample postings -> {SAMPLE_FEED}")
+    return 0
 
 
 def _export_command(args: argparse.Namespace, store) -> int:

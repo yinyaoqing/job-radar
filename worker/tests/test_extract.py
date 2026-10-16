@@ -278,3 +278,23 @@ def test_feed_carries_policy_but_no_quotes():
     assert item["skills"] == ["TypeScript"]
     assert item["no_ai_policy"] is True
     assert "We hire worldwide." not in str(item)
+
+
+def test_web_eligibility_fixture_is_current():
+    import json
+
+    from job_radar.evaluate import WEB_FIXTURE, web_fixture
+
+    expected = web_fixture(load_cases())
+    current = json.loads(WEB_FIXTURE.read_text(encoding="utf-8"))
+    assert current == expected, "run: uv run job-radar eval regions --write-web-fixture"
+
+
+def test_sample_feed_is_current():
+    import json
+
+    from job_radar.sample import SAMPLE_FEED, build_sample_feed
+
+    assert json.loads(SAMPLE_FEED.read_text(encoding="utf-8")) == build_sample_feed(), (
+        "run: uv run job-radar export --sample"
+    )

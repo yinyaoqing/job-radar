@@ -20,7 +20,7 @@ from pathlib import Path
 from typing import Any
 
 from .classify import CATEGORIES, is_general_application
-from .eligibility import policy_from_location_text
+from .eligibility import REGIONS, policy_from_location_text
 from .extract import SCHEMA_VERSION
 from .store import Store
 
@@ -48,17 +48,26 @@ POLICY_KEYS = (
 )
 
 
+def hard_blocks(extraction: dict[str, Any] | None) -> list[dict[str, Any]]:
+    """Clearance and citizenship requirements; ``countries`` lists the citizenships that
+    satisfy one (empty when the value names none, which the site treats as blocking)."""
+    blocks = []
+    for r in (extraction or {}).get("hard_requirements") or []:
+        if r.get("type") not in ("clearance", "citizenship"):
+            continue
+        named = policy_from_location_text(r.get("value")) if r["type"] == "citizenship" else None
+        countries = (named or {}).get("countries", [])
+        blocks.append({"type": r["type"], "value": r.get("value"), "countries": countries})
+    return blocks
+
+
 def _from_extraction(extraction: dict[str, Any] | None) -> dict[str, Any]:
     if not extraction:
         return {"extracted": False}
     checks = extraction.get("checks") or {}
     policy = extraction.get("location_policy") or {}
     verified = bool(checks.get("location_verified")) and policy.get("type") != "unknown"
-    blocks = [
-        {"type": r["type"], "value": r["value"]}
-        for r in extraction.get("hard_requirements") or []
-        if r.get("type") in ("clearance", "citizenship")
-    ]
+    blocks = hard_blocks(extraction)
     salary = extraction.get("salary")
     if salary and salary.get("min") is None and salary.get("max") is None:
         salary = None
@@ -107,6 +116,8 @@ def build_feed(store: Store, now: datetime) -> dict[str, Any]:
             {"id": slug, "label": label, "count": counts.get(slug, 0)}
             for slug, label in CATEGORIES.items()
         ],
+        # Country codes per region, so the site judges region lists the same way.
+        "regions": {name: sorted(members) for name, members in REGIONS.items()},
         "attribution": ATTRIBUTION,
         "postings": postings,
     }

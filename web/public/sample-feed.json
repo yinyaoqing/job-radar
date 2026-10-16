@@ -1,0 +1,931 @@
+{
+ "version": 3,
+ "generated_at": "2026-10-16T00:00:00+00:00",
+ "scope": "fully remote, all domains",
+ "count": 14,
+ "categories": [
+  {
+   "id": "engineering",
+   "label": "工程",
+   "count": 2
+  },
+  {
+   "id": "data",
+   "label": "資料與分析",
+   "count": 2
+  },
+  {
+   "id": "product",
+   "label": "產品",
+   "count": 1
+  },
+  {
+   "id": "design",
+   "label": "設計",
+   "count": 1
+  },
+  {
+   "id": "marketing",
+   "label": "行銷",
+   "count": 1
+  },
+  {
+   "id": "sales",
+   "label": "業務",
+   "count": 1
+  },
+  {
+   "id": "customer",
+   "label": "客戶成功與支援",
+   "count": 1
+  },
+  {
+   "id": "operations",
+   "label": "營運",
+   "count": 0
+  },
+  {
+   "id": "finance",
+   "label": "財務",
+   "count": 1
+  },
+  {
+   "id": "people",
+   "label": "人資與招募",
+   "count": 1
+  },
+  {
+   "id": "legal",
+   "label": "法務與合規",
+   "count": 1
+  },
+  {
+   "id": "content",
+   "label": "內容與社群",
+   "count": 1
+  },
+  {
+   "id": "healthcare",
+   "label": "醫療照護",
+   "count": 1
+  },
+  {
+   "id": "other",
+   "label": "其他",
+   "count": 0
+  }
+ ],
+ "regions": {
+  "EU": [
+   "AT",
+   "BE",
+   "BG",
+   "CY",
+   "CZ",
+   "DE",
+   "DK",
+   "EE",
+   "ES",
+   "FI",
+   "FR",
+   "GR",
+   "HR",
+   "HU",
+   "IE",
+   "IT",
+   "LT",
+   "LU",
+   "LV",
+   "MT",
+   "NL",
+   "PL",
+   "PT",
+   "RO",
+   "SE",
+   "SI",
+   "SK"
+  ],
+  "EEA": [
+   "AT",
+   "BE",
+   "BG",
+   "CY",
+   "CZ",
+   "DE",
+   "DK",
+   "EE",
+   "ES",
+   "FI",
+   "FR",
+   "GR",
+   "HR",
+   "HU",
+   "IE",
+   "IS",
+   "IT",
+   "LI",
+   "LT",
+   "LU",
+   "LV",
+   "MT",
+   "NL",
+   "NO",
+   "PL",
+   "PT",
+   "RO",
+   "SE",
+   "SI",
+   "SK"
+  ],
+  "EUROPE": [
+   "AL",
+   "AM",
+   "AT",
+   "BA",
+   "BE",
+   "BG",
+   "CH",
+   "CY",
+   "CZ",
+   "DE",
+   "DK",
+   "EE",
+   "ES",
+   "FI",
+   "FR",
+   "GB",
+   "GE",
+   "GR",
+   "HR",
+   "HU",
+   "IE",
+   "IS",
+   "IT",
+   "LI",
+   "LT",
+   "LU",
+   "LV",
+   "MD",
+   "ME",
+   "MK",
+   "MT",
+   "NL",
+   "NO",
+   "PL",
+   "PT",
+   "RO",
+   "RS",
+   "SE",
+   "SI",
+   "SK",
+   "UA"
+  ],
+  "UK": [
+   "GB"
+  ],
+  "EMEA": [
+   "AE",
+   "AL",
+   "AM",
+   "AT",
+   "BA",
+   "BE",
+   "BG",
+   "BH",
+   "CH",
+   "CI",
+   "CY",
+   "CZ",
+   "DE",
+   "DK",
+   "EE",
+   "EG",
+   "ES",
+   "ET",
+   "FI",
+   "FR",
+   "GB",
+   "GE",
+   "GH",
+   "GR",
+   "HR",
+   "HU",
+   "IE",
+   "IL",
+   "IQ",
+   "IS",
+   "IT",
+   "JO",
+   "KE",
+   "KW",
+   "LB",
+   "LI",
+   "LT",
+   "LU",
+   "LV",
+   "MA",
+   "MD",
+   "ME",
+   "MK",
+   "MT",
+   "NG",
+   "NL",
+   "NO",
+   "OM",
+   "PL",
+   "PT",
+   "QA",
+   "RO",
+   "RS",
+   "RW",
+   "SA",
+   "SE",
+   "SI",
+   "SK",
+   "SN",
+   "TN",
+   "TR",
+   "TZ",
+   "UA",
+   "UG",
+   "ZA"
+  ],
+  "NORTH_AMERICA": [
+   "CA",
+   "MX",
+   "US"
+  ],
+  "LATAM": [
+   "AR",
+   "BO",
+   "BR",
+   "CL",
+   "CO",
+   "CR",
+   "DO",
+   "EC",
+   "GT",
+   "HN",
+   "MX",
+   "NI",
+   "PA",
+   "PE",
+   "PR",
+   "PY",
+   "SV",
+   "UY",
+   "VE"
+  ],
+  "AMERICAS": [
+   "AR",
+   "BB",
+   "BO",
+   "BR",
+   "BS",
+   "CA",
+   "CL",
+   "CO",
+   "CR",
+   "DO",
+   "EC",
+   "GT",
+   "HN",
+   "JM",
+   "MX",
+   "NI",
+   "PA",
+   "PE",
+   "PR",
+   "PY",
+   "SV",
+   "TT",
+   "US",
+   "UY",
+   "VE"
+  ],
+  "APAC": [
+   "AU",
+   "BD",
+   "CN",
+   "FJ",
+   "HK",
+   "ID",
+   "IN",
+   "JP",
+   "KH",
+   "KR",
+   "KZ",
+   "LA",
+   "LK",
+   "MM",
+   "MN",
+   "MO",
+   "MY",
+   "NP",
+   "NZ",
+   "PG",
+   "PH",
+   "PK",
+   "SG",
+   "TH",
+   "TW",
+   "UZ",
+   "VN"
+  ],
+  "ASIA": [
+   "BD",
+   "CN",
+   "HK",
+   "ID",
+   "IN",
+   "JP",
+   "KH",
+   "KR",
+   "KZ",
+   "LA",
+   "LK",
+   "MM",
+   "MN",
+   "MO",
+   "MY",
+   "NP",
+   "PH",
+   "PK",
+   "SG",
+   "TH",
+   "TW",
+   "UZ",
+   "VN"
+  ],
+  "OCEANIA": [
+   "AU",
+   "FJ",
+   "NZ",
+   "PG"
+  ],
+  "AFRICA": [
+   "CI",
+   "EG",
+   "ET",
+   "GH",
+   "KE",
+   "MA",
+   "NG",
+   "RW",
+   "SN",
+   "TN",
+   "TZ",
+   "UG",
+   "ZA"
+  ],
+  "MIDDLE_EAST": [
+   "AE",
+   "BH",
+   "EG",
+   "IL",
+   "IQ",
+   "JO",
+   "KW",
+   "LB",
+   "OM",
+   "QA",
+   "SA",
+   "TR"
+  ]
+ },
+ "attribution": [
+  {
+   "name": "remoteintech/remote-jobs",
+   "url": "https://github.com/remoteintech/remote-jobs",
+   "license": "ISC",
+   "used_for": "company discovery"
+  },
+  {
+   "name": "Hacker News: Ask HN: Who is hiring?",
+   "url": "https://news.ycombinator.com/submitted?id=whoishiring",
+   "used_for": "company discovery"
+  }
+ ],
+ "postings": [
+  {
+   "id": "ashby:northwind-labs:sample-00",
+   "company": "Northwind Labs",
+   "company_website": "https://northwind-labs.example.com",
+   "company_region": null,
+   "title": "Senior Frontend Engineer",
+   "category": "engineering",
+   "department": "Engineering",
+   "location": "Remote - Worldwide",
+   "work_mode": "remote",
+   "field_policy": {
+    "type": "worldwide",
+    "countries": [],
+    "regions": []
+   },
+   "url": "https://example.com/jobs/northwind-labs/00",
+   "ats": "ashby",
+   "published_at": null,
+   "first_seen_at": "2026-10-16T00:00:00+00:00",
+   "last_verified_at": "2026-10-16T00:00:00+00:00",
+   "extracted": true,
+   "location_policy": {
+    "type": "worldwide",
+    "countries": [],
+    "regions": [],
+    "timezone_window_utc": null,
+    "required_overlap_hours": null,
+    "overlap_reference_utc": null
+   },
+   "hard_blocks": [],
+   "seniority": "senior",
+   "employment": "full_time",
+   "salary": {
+    "min": 120000,
+    "max": 160000,
+    "currency": "USD",
+    "period": "year"
+   },
+   "skills": [
+    "TypeScript",
+    "React",
+    "Next.js"
+   ],
+   "no_ai_policy": false
+  },
+  {
+   "id": "ashby:lumen-health:sample-06",
+   "company": "Lumen Health",
+   "company_website": "https://lumen-health.example.com",
+   "company_region": null,
+   "title": "Telehealth Physician",
+   "category": "healthcare",
+   "department": "Clinical",
+   "location": "Remote - US",
+   "work_mode": "remote",
+   "field_policy": {
+    "type": "country_list",
+    "countries": [
+     "US"
+    ],
+    "regions": []
+   },
+   "url": "https://example.com/jobs/lumen-health/06",
+   "ats": "ashby",
+   "published_at": null,
+   "first_seen_at": "2026-10-15T18:00:00+00:00",
+   "last_verified_at": "2026-10-16T00:00:00+00:00",
+   "extracted": true,
+   "location_policy": {
+    "type": "country_list",
+    "countries": [
+     "US"
+    ],
+    "regions": [],
+    "timezone_window_utc": null,
+    "required_overlap_hours": null,
+    "overlap_reference_utc": null
+   },
+   "hard_blocks": [
+    {
+     "type": "citizenship",
+     "value": "US citizen",
+     "countries": [
+      "US"
+     ]
+    }
+   ],
+   "seniority": "senior",
+   "employment": "full_time",
+   "salary": null,
+   "skills": [],
+   "no_ai_policy": false
+  },
+  {
+   "id": "ashby:quillfeather:sample-12",
+   "company": "Quillfeather",
+   "company_website": "https://quillfeather.example.com",
+   "company_region": null,
+   "title": "Senior Product Manager",
+   "category": "product",
+   "department": "Product",
+   "location": "Remote - Americas; Remote - Asia",
+   "work_mode": "remote",
+   "field_policy": {
+    "type": "region_list",
+    "countries": [],
+    "regions": [
+     "AMERICAS",
+     "ASIA"
+    ]
+   },
+   "url": "https://example.com/jobs/quillfeather/12",
+   "ats": "ashby",
+   "published_at": null,
+   "first_seen_at": "2026-10-15T12:00:00+00:00",
+   "last_verified_at": "2026-10-16T00:00:00+00:00",
+   "extracted": true,
+   "location_policy": null,
+   "hard_blocks": [],
+   "seniority": "senior",
+   "employment": "full_time",
+   "salary": null,
+   "skills": [
+    "B2B SaaS"
+   ],
+   "no_ai_policy": false
+  },
+  {
+   "id": "ashby:northwind-labs:sample-01",
+   "company": "Northwind Labs",
+   "company_website": "https://northwind-labs.example.com",
+   "company_region": null,
+   "title": "Product Designer",
+   "category": "design",
+   "department": "Design",
+   "location": "Remote",
+   "work_mode": "remote",
+   "field_policy": null,
+   "url": "https://example.com/jobs/northwind-labs/01",
+   "ats": "ashby",
+   "published_at": null,
+   "first_seen_at": "2026-10-14T23:00:00+00:00",
+   "last_verified_at": "2026-10-16T00:00:00+00:00",
+   "extracted": true,
+   "location_policy": {
+    "type": "region_list",
+    "countries": [],
+    "regions": [
+     "APAC"
+    ],
+    "timezone_window_utc": null,
+    "required_overlap_hours": null,
+    "overlap_reference_utc": null
+   },
+   "hard_blocks": [],
+   "seniority": "senior",
+   "employment": "full_time",
+   "salary": null,
+   "skills": [
+    "Figma",
+    "Design systems"
+   ],
+   "no_ai_policy": false
+  },
+  {
+   "id": "ashby:lumen-health:sample-07",
+   "company": "Lumen Health",
+   "company_website": "https://lumen-health.example.com",
+   "company_region": null,
+   "title": "Content Writer",
+   "category": "content",
+   "department": "Marketing",
+   "location": "Remote",
+   "work_mode": "remote",
+   "field_policy": null,
+   "url": "https://example.com/jobs/lumen-health/07",
+   "ats": "ashby",
+   "published_at": null,
+   "first_seen_at": "2026-10-14T17:00:00+00:00",
+   "last_verified_at": "2026-10-16T00:00:00+00:00",
+   "extracted": true,
+   "location_policy": null,
+   "hard_blocks": [],
+   "seniority": "senior",
+   "employment": "full_time",
+   "salary": null,
+   "skills": [],
+   "no_ai_policy": false
+  },
+  {
+   "id": "ashby:quillfeather:sample-13",
+   "company": "Quillfeather",
+   "company_website": "https://quillfeather.example.com",
+   "company_region": null,
+   "title": "Privacy Counsel",
+   "category": "legal",
+   "department": "Legal",
+   "location": "Remote (Europe)",
+   "work_mode": "remote",
+   "field_policy": {
+    "type": "region_list",
+    "countries": [],
+    "regions": [
+     "EUROPE"
+    ]
+   },
+   "url": "https://example.com/jobs/quillfeather/13",
+   "ats": "ashby",
+   "published_at": null,
+   "first_seen_at": "2026-10-14T11:00:00+00:00",
+   "last_verified_at": "2026-10-16T00:00:00+00:00",
+   "extracted": true,
+   "location_policy": {
+    "type": "region_list",
+    "countries": [],
+    "regions": [
+     "EU"
+    ],
+    "timezone_window_utc": null,
+    "required_overlap_hours": null,
+    "overlap_reference_utc": null
+   },
+   "hard_blocks": [],
+   "seniority": "senior",
+   "employment": "full_time",
+   "salary": null,
+   "skills": [],
+   "no_ai_policy": false
+  },
+  {
+   "id": "ashby:blue-harbor:sample-02",
+   "company": "Blue Harbor",
+   "company_website": "https://blue-harbor.example.com",
+   "company_region": null,
+   "title": "Backend Engineer (Go)",
+   "category": "engineering",
+   "department": "Platform",
+   "location": "Remote (USA)",
+   "work_mode": "remote",
+   "field_policy": {
+    "type": "country_list",
+    "countries": [
+     "US"
+    ],
+    "regions": []
+   },
+   "url": "https://example.com/jobs/blue-harbor/02",
+   "ats": "ashby",
+   "published_at": null,
+   "first_seen_at": "2026-10-13T22:00:00+00:00",
+   "last_verified_at": "2026-10-16T00:00:00+00:00",
+   "extracted": true,
+   "location_policy": {
+    "type": "country_list",
+    "countries": [
+     "US"
+    ],
+    "regions": [],
+    "timezone_window_utc": null,
+    "required_overlap_hours": null,
+    "overlap_reference_utc": null
+   },
+   "hard_blocks": [],
+   "seniority": "senior",
+   "employment": "full_time",
+   "salary": null,
+   "skills": [
+    "Go",
+    "PostgreSQL"
+   ],
+   "no_ai_policy": false
+  },
+  {
+   "id": "ashby:orbit-commerce:sample-08",
+   "company": "Orbit Commerce",
+   "company_website": "https://orbit-commerce.example.com",
+   "company_region": null,
+   "title": "Growth Marketing Manager",
+   "category": "marketing",
+   "department": "Marketing",
+   "location": "Remote",
+   "work_mode": "remote",
+   "field_policy": null,
+   "url": "https://example.com/jobs/orbit-commerce/08",
+   "ats": "ashby",
+   "published_at": null,
+   "first_seen_at": "2026-10-13T16:00:00+00:00",
+   "last_verified_at": "2026-10-16T00:00:00+00:00",
+   "extracted": true,
+   "location_policy": {
+    "type": "worldwide",
+    "countries": [],
+    "regions": [],
+    "timezone_window_utc": null,
+    "required_overlap_hours": 2,
+    "overlap_reference_utc": 1
+   },
+   "hard_blocks": [],
+   "seniority": "senior",
+   "employment": "full_time",
+   "salary": {
+    "min": 80000,
+    "max": 100000,
+    "currency": "EUR",
+    "period": "year"
+   },
+   "skills": [],
+   "no_ai_policy": false
+  },
+  {
+   "id": "ashby:blue-harbor:sample-03",
+   "company": "Blue Harbor",
+   "company_website": "https://blue-harbor.example.com",
+   "company_region": null,
+   "title": "Customer Success Manager",
+   "category": "customer",
+   "department": "Customer Success",
+   "location": "Remote - EMEA",
+   "work_mode": "remote",
+   "field_policy": {
+    "type": "region_list",
+    "countries": [],
+    "regions": [
+     "EMEA"
+    ]
+   },
+   "url": "https://example.com/jobs/blue-harbor/03",
+   "ats": "ashby",
+   "published_at": null,
+   "first_seen_at": "2026-10-12T21:00:00+00:00",
+   "last_verified_at": "2026-10-16T00:00:00+00:00",
+   "extracted": true,
+   "location_policy": {
+    "type": "region_list",
+    "countries": [],
+    "regions": [
+     "EMEA"
+    ],
+    "timezone_window_utc": null,
+    "required_overlap_hours": null,
+    "overlap_reference_utc": null
+   },
+   "hard_blocks": [],
+   "seniority": "senior",
+   "employment": "full_time",
+   "salary": null,
+   "skills": [],
+   "no_ai_policy": false
+  },
+  {
+   "id": "ashby:orbit-commerce:sample-09",
+   "company": "Orbit Commerce",
+   "company_website": "https://orbit-commerce.example.com",
+   "company_region": null,
+   "title": "Account Executive, APAC",
+   "category": "sales",
+   "department": "Sales",
+   "location": "Singapore (Remote)",
+   "work_mode": "remote",
+   "field_policy": {
+    "type": "country_list",
+    "countries": [
+     "SG"
+    ],
+    "regions": []
+   },
+   "url": "https://example.com/jobs/orbit-commerce/09",
+   "ats": "ashby",
+   "published_at": null,
+   "first_seen_at": "2026-10-12T15:00:00+00:00",
+   "last_verified_at": "2026-10-16T00:00:00+00:00",
+   "extracted": true,
+   "location_policy": {
+    "type": "region_list",
+    "countries": [],
+    "regions": [
+     "APAC"
+    ],
+    "timezone_window_utc": null,
+    "required_overlap_hours": null,
+    "overlap_reference_utc": null
+   },
+   "hard_blocks": [],
+   "seniority": "senior",
+   "employment": "full_time",
+   "salary": null,
+   "skills": [],
+   "no_ai_policy": false
+  },
+  {
+   "id": "ashby:kestrel-data:sample-04",
+   "company": "Kestrel Data",
+   "company_website": "https://kestrel-data.example.com",
+   "company_region": null,
+   "title": "Data Analyst",
+   "category": "data",
+   "department": "Analytics",
+   "location": "Remote",
+   "work_mode": "remote",
+   "field_policy": null,
+   "url": "https://example.com/jobs/kestrel-data/04",
+   "ats": "ashby",
+   "published_at": null,
+   "first_seen_at": "2026-10-11T20:00:00+00:00",
+   "last_verified_at": "2026-10-16T00:00:00+00:00",
+   "extracted": true,
+   "location_policy": {
+    "type": "timezone_window",
+    "countries": [],
+    "regions": [],
+    "timezone_window_utc": {
+     "from_utc": 5,
+     "to_utc": 10
+    },
+    "required_overlap_hours": null,
+    "overlap_reference_utc": null
+   },
+   "hard_blocks": [],
+   "seniority": "senior",
+   "employment": "full_time",
+   "salary": null,
+   "skills": [
+    "SQL",
+    "dbt"
+   ],
+   "no_ai_policy": false
+  },
+  {
+   "id": "ashby:tidewater:sample-10",
+   "company": "Tidewater",
+   "company_website": "https://tidewater.example.com",
+   "company_region": null,
+   "title": "Technical Recruiter",
+   "category": "people",
+   "department": "People",
+   "location": "Remote - Taiwan",
+   "work_mode": "remote",
+   "field_policy": {
+    "type": "country_list",
+    "countries": [
+     "TW"
+    ],
+    "regions": []
+   },
+   "url": "https://example.com/jobs/tidewater/10",
+   "ats": "ashby",
+   "published_at": null,
+   "first_seen_at": "2026-10-11T14:00:00+00:00",
+   "last_verified_at": "2026-10-16T00:00:00+00:00",
+   "extracted": true,
+   "location_policy": {
+    "type": "country_list",
+    "countries": [
+     "TW"
+    ],
+    "regions": [],
+    "timezone_window_utc": null,
+    "required_overlap_hours": null,
+    "overlap_reference_utc": null
+   },
+   "hard_blocks": [],
+   "seniority": "senior",
+   "employment": "full_time",
+   "salary": null,
+   "skills": [],
+   "no_ai_policy": true
+  },
+  {
+   "id": "ashby:kestrel-data:sample-05",
+   "company": "Kestrel Data",
+   "company_website": "https://kestrel-data.example.com",
+   "company_region": null,
+   "title": "Machine Learning Engineer",
+   "category": "data",
+   "department": "Research",
+   "location": "Remote",
+   "work_mode": "remote",
+   "field_policy": null,
+   "url": "https://example.com/jobs/kestrel-data/05",
+   "ats": "ashby",
+   "published_at": null,
+   "first_seen_at": "2026-10-10T19:00:00+00:00",
+   "last_verified_at": "2026-10-16T00:00:00+00:00",
+   "extracted": true,
+   "location_policy": {
+    "type": "worldwide",
+    "countries": [],
+    "regions": [],
+    "timezone_window_utc": null,
+    "required_overlap_hours": 4,
+    "overlap_reference_utc": -8
+   },
+   "hard_blocks": [],
+   "seniority": "senior",
+   "employment": "full_time",
+   "salary": null,
+   "skills": [
+    "Python",
+    "PyTorch"
+   ],
+   "no_ai_policy": false
+  },
+  {
+   "id": "ashby:tidewater:sample-11",
+   "company": "Tidewater",
+   "company_website": "https://tidewater.example.com",
+   "company_region": null,
+   "title": "Finance Operations Lead",
+   "category": "finance",
+   "department": "Finance",
+   "location": "Remote",
+   "work_mode": "remote",
+   "field_policy": null,
+   "url": "https://example.com/jobs/tidewater/11",
+   "ats": "ashby",
+   "published_at": null,
+   "first_seen_at": "2026-10-10T13:00:00+00:00",
+   "last_verified_at": "2026-10-16T00:00:00+00:00",
+   "extracted": false
+  }
+ ]
+}

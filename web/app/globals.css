@@ -1,0 +1,59 @@
+@import "tailwindcss";
+
+/* shadcn/ui-style tokens: light by default, dark when the system asks for it. */
+:root {
+  --background: oklch(0.99 0 0);
+  --foreground: oklch(0.2 0.01 260);
+  --card: oklch(1 0 0);
+  --muted: oklch(0.96 0.005 260);
+  --muted-foreground: oklch(0.5 0.015 260);
+  --border: oklch(0.91 0.005 260);
+  --primary: oklch(0.45 0.13 255);
+  --primary-foreground: oklch(0.99 0 0);
+  --eligible: oklch(0.52 0.13 150);
+  --blocked: oklch(0.55 0.17 25);
+  --unclear: oklch(0.62 0.12 75);
+  --ring: oklch(0.6 0.12 255);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: oklch(0.17 0.01 260);
+    --foreground: oklch(0.93 0.005 260);
+    --card: oklch(0.21 0.01 260);
+    --muted: oklch(0.25 0.01 260);
+    --muted-foreground: oklch(0.7 0.01 260);
+    --border: oklch(0.3 0.01 260);
+    --primary: oklch(0.72 0.12 255);
+    --primary-foreground: oklch(0.17 0.01 260);
+    --eligible: oklch(0.72 0.14 150);
+    --blocked: oklch(0.7 0.15 25);
+    --unclear: oklch(0.8 0.12 80);
+  }
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-border: var(--border);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-eligible: var(--eligible);
+  --color-blocked: var(--blocked);
+  --color-unclear: var(--unclear);
+  --color-ring: var(--ring);
+  --font-sans: "Noto Sans TC", "PingFang TC", "Microsoft JhengHei", system-ui, sans-serif;
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-sans);
+}
+
+* {
+  border-color: var(--border);
+}

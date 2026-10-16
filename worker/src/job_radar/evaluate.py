@@ -141,3 +141,36 @@ def run_live(
             Result(case["id"], case["trap"], case["expected"], verdict.label, verdict.reasons)
         )
     return report
+
+
+WEB_FIXTURE = DEFAULT_CASES.parents[2] / "web" / "lib" / "__fixtures__" / "region-traps.json"
+
+
+def web_fixture(cases: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    """The region trap cases as feed postings, for web/lib/eligibility.test.ts: the site's
+    port of the rules must reach the same verdicts from the same feed fields."""
+    from .eligibility import policy_from_location_text
+    from .export import hard_blocks
+
+    fixture = []
+    for case in cases:
+        policy = policy_from_case(case.get("policy") or {})
+        fixture.append(
+            {
+                "id": case["id"],
+                "expected": case["expected"],
+                "posting": {
+                    "work_mode": case.get("work_mode", "remote"),
+                    "location": case.get("location"),
+                    "field_policy": policy_from_location_text(case.get("location")),
+                    "extracted": True,
+                    "location_policy": None
+                    if policy["type"] == "unknown"
+                    else {k: v for k, v in policy.items() if k != "quotes"},
+                    "hard_blocks": hard_blocks(
+                        {"hard_requirements": case.get("hard_requirements", [])}
+                    ),
+                },
+            }
+        )
+    return fixture

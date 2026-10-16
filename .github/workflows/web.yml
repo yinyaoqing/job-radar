@@ -1,0 +1,56 @@
+# Site: typecheck, eligibility parity tests, static build; on main, publish to GitHub
+# Pages. Building and publishing the project's own site is what Actions is for; the
+# daily crawl that produces the real feed runs on our host (deploy/README.md).
+name: web
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: web
+    env:
+      # Set the FEED_URL repository variable once the host publishes feed.json;
+      # until then the site shows the fictional sample feed.
+      NEXT_PUBLIC_FEED_URL: ${{ vars.FEED_URL }}
+      NEXT_PUBLIC_BASE_PATH: /${{ github.event.repository.name }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+      - run: npm ci
+      - run: npx vitest run
+      # next build type-checks too, after generating next-env.d.ts (not committed).
+      - run: npx next build
+      - uses: actions/upload-pages-artifact@v3
+        if: vars.PAGES_ENABLED == 'true' && github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+        with:
+          path: web/out
+
+  # Turn on with Settings > Pages > Source: GitHub Actions, then the PAGES_ENABLED=true
+  # repository variable.
+  deploy:
+    needs: build
+    if: vars.PAGES_ENABLED == 'true' && github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

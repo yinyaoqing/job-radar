@@ -345,11 +345,8 @@ def _hard_requirement_block(extraction: dict[str, Any] | None, candidate: Candid
         if req.get("type") == "clearance":
             return f"需要安全許可：{req.get('value')}"
         if req.get("type") == "citizenship":
-            value = (req.get("value") or "").lower()
-            names = [n for n, code in _COUNTRY_NAMES.items() if code == candidate.country]
-            if (
-                not any(n in value for n in names)
-                and candidate.country.lower() not in value.split()
-            ):
+            # Same parsing as the feed's hard_blocks, so the site agrees with this rule.
+            named = policy_from_location_text(req.get("value")) or {}
+            if candidate.country not in named.get("countries", []):
                 return f"需要特定國籍：{req.get('value')}"
     return None

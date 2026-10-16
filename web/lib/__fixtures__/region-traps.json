@@ -1,0 +1,983 @@
+[
+  {
+    "id": "worldwide-explicit",
+    "expected": "eligible",
+    "posting": {
+      "work_mode": "remote",
+      "location": "Remote",
+      "field_policy": null,
+      "extracted": true,
+      "location_policy": {
+        "type": "worldwide",
+        "countries": [],
+        "regions": [],
+        "timezone_window_utc": null,
+        "required_overlap_hours": null,
+        "overlap_reference_utc": null
+      },
+      "hard_blocks": []
+    }
+  },
+  {
+    "id": "worldwide-except-sanctions",
+    "expected": "eligible",
+    "posting": {
+      "work_mode": "remote",
+      "location": "Remote",
+      "field_policy": null,
+      "extracted": true,
+      "location_policy": {
+        "type": "worldwide",
+        "countries": [],
+        "regions": [],
+        "timezone_window_utc": null,
+        "required_overlap_hours": null,
+        "overlap_reference_utc": null
+      },
+      "hard_blocks": []
+    }
+  },
+  {
+    "id": "worldwide-contractor",
+    "expected": "eligible",
+    "posting": {
+      "work_mode": "remote",
+      "location": "Remote",
+      "field_policy": null,
+      "extracted": true,
+      "location_policy": {
+        "type": "worldwide",
+        "countries": [],
+        "regions": [],
+        "timezone_window_utc": null,
+        "required_overlap_hours": null,
+        "overlap_reference_utc": null
+      },
+      "hard_blocks": []
+    }
+  },
+  {
+    "id": "worldwide-field",
+    "expected": "eligible",
+    "posting": {
+      "work_mode": "remote",
+      "location": "Worldwide",
+      "field_policy": {
+        "type": "worldwide",
+        "countries": [],
+        "regions": []
+      },
+      "extracted": true,
+      "location_policy": {
+        "type": "worldwide",
+        "countries": [],
+        "regions": [],
+        "timezone_window_utc": null,
+        "required_overlap_hours": null,
+        "overlap_reference_utc": null
+      },
+      "hard_blocks": []
+    }
+  },
+  {
+    "id": "remote-but-us-residents",
+    "expected": "blocked",
+    "posting": {
+      "work_mode": "remote",
+      "location": "Remote",
+      "field_policy": null,
+      "extracted": true,
+      "location_policy": {
+        "type": "country_list",
+        "countries": [
+          "US"
+        ],
+        "regions": [],
+        "timezone_window_utc": null,
+        "required_overlap_hours": null,
+        "overlap_reference_utc": null
+      },
+      "hard_blocks": []
+    }
+  },
+  {
+    "id": "us-work-authorization",
+    "expected": "blocked",
+    "posting": {
+      "work_mode": "remote",
+      "location": "Remote",
+      "field_policy": null,
+      "extracted": true,
+      "location_policy": {
+        "type": "country_list",
+        "countries": [
+          "US"
+        ],
+        "regions": [],
+        "timezone_window_utc": null,
+        "required_overlap_hours": null,
+        "overlap_reference_utc": null
+      },
+      "hard_blocks": []
+    }
+  },
+  {
+    "id": "us-state-in-field",
+    "expected": "blocked",
+    "posting": {
+      "work_mode": "remote",
+      "location": "Remote - CA",
+      "field_policy": {
+        "type": "country_list",
+        "countries": [
+          "US"
+        ],
+        "regions": []
+      },
+      "extracted": true,
+      "location_policy": null,
+      "hard_blocks": []
+    }
+  },
+  {
+    "id": "us-or-canada",
+    "expected": "blocked",
+    "posting": {
+      "work_mode": "remote",
+      "location": "Remote",
+      "field_policy": null,
+      "extracted": true,
+      "location_policy": {
+        "type": "country_list",
+        "countries": [
+          "US",
+          "CA"
+        ],
+        "regions": [],
+        "timezone_window_utc": null,
+        "required_overlap_hours": null,
+        "overlap_reference_utc": null
+      },
+      "hard_blocks": []
+    }
+  },
+  {
+    "id": "country-list-includes-taiwan",
+    "expected": "eligible",
+    "posting": {
+      "work_mode": "remote",
+      "location": "Remote",
+      "field_policy": null,
+      "extracted": true,
+      "location_policy": {
+        "type": "country_list",
+        "countries": [
+          "TW",
+          "JP",
+          "SG",
+          "AU"
+        ],
+        "regions": [],
+        "timezone_window_utc": null,
+        "required_overlap_hours": null,
+        "overlap_reference_utc": null
+      },
+      "hard_blocks": []
+    }
+  },
+  {
+    "id": "entity-countries-without-taiwan",
+    "expected": "blocked",
+    "posting": {
+      "work_mode": "remote",
+      "location": "Remote",
+      "field_policy": null,
+      "extracted": true,
+      "location_policy": {
+        "type": "country_list",
+        "countries": [
+          "US",
+          "GB",
+          "DE",
+          "SG",
+          "JP"
+        ],
+        "regions": [],
+        "timezone_window_utc": null,
+        "required_overlap_hours": null,
+        "overlap_reference_utc": null
+      },
+      "hard_blocks": []
+    }
+  },
+  {
+    "id": "eu-only",
+    "expected": "blocked",
+    "posting": {
+      "work_mode": "remote",
+      "location": "Remote (Europe)",
+      "field_policy": {
+        "type": "region_list",
+        "countries": [],
+        "regions": [
+          "EUROPE"
+        ]
+      },
+      "extracted": true,
+      "location_policy": {
+        "type": "region_list",
+        "countries": [],
+        "regions": [
+          "EU"
+        ],
+        "timezone_window_utc": null,
+        "required_overlap_hours": null,
+        "overlap_reference_utc": null
+      },
+      "hard_blocks": []
+    }
+  },
+  {
+    "id": "emea",
+    "expected": "blocked",
+    "posting": {
+      "work_mode": "remote",
+      "location": "Remote - EMEA",
+      "field_policy": {
+        "type": "region_list",
+        "countries": [],
+        "regions": [
+          "EMEA"
+        ]
+      },
+      "extracted": true,
+      "location_policy": {
+        "type": "region_list",
+        "countries": [],
+        "regions": [
+          "EMEA"
+        ],
+        "timezone_window_utc": null,
+        "required_overlap_hours": null,
+        "overlap_reference_utc": null
+      },
+      "hard_blocks": []
+    }
+  },
+  {
+    "id": "uk-only",
+    "expected": "blocked",
+    "posting": {
+      "work_mode": "remote",
+      "location": "London or Remote (UK)",
+      "field_policy": {
+        "type": "country_list",
+        "countries": [
+          "GB"
+        ],
+        "regions": []
+      },
+      "extracted": true,
+      "location_policy": {
+        "type": "country_list",
+        "countries": [
+          "GB"
+        ],
+        "regions": [],
+        "timezone_window_utc": null,
+        "required_overlap_hours": null,
+        "overlap_reference_utc": null
+      },
+      "hard_blocks": []
+    }
+  },
+  {
+    "id": "latam",
+    "expected": "blocked",
+    "posting": {
+      "work_mode": "remote",
+      "location": "LATAM",
+      "field_policy": {
+        "type": "region_list",
+        "countries": [],
+        "regions": [
+          "LATAM"
+        ]
+      },
+      "extracted": true,
+      "location_policy": {
+        "type": "region_list",
+        "countries": [],
+        "regions": [
+          "LATAM"
+        ],
+        "timezone_window_utc": null,
+        "required_overlap_hours": null,
+        "overlap_reference_utc": null
+      },
+      "hard_blocks": []
+    }
+  },
+  {
+    "id": "north-america",
+    "expected": "blocked",
+    "posting": {
+      "work_mode": "remote",
+      "location": "Remote",
+      "field_policy": null,
+      "extracted": true,
+      "location_policy": {
+        "type": "region_list",
+        "countries": [],
+        "regions": [
+          "NORTH_AMERICA"
+        ],
+        "timezone_window_utc": null,
+        "required_overlap_hours": null,
+        "overlap_reference_utc": null
+      },
+      "hard_blocks": []
+    }
+  },
+  {
+    "id": "apac",
+    "expected": "eligible",
+    "posting": {
+      "work_mode": "remote",
+      "location": "Remote - APAC",
+      "field_policy": {
+        "type": "region_list",
+        "countries": [],
+        "regions": [
+          "APAC"
+        ]
+      },
+      "extracted": true,
+      "location_policy": {
+        "type": "region_list",
+        "countries": [],
+        "regions": [
+          "APAC"
+        ],
+        "timezone_window_utc": null,
+        "required_overlap_hours": null,
+        "overlap_reference_utc": null
+      },
+      "hard_blocks": []
+    }
+  },
+  {
+    "id": "asia",
+    "expected": "eligible",
+    "posting": {
+      "work_mode": "remote",
+      "location": "Remote",
+      "field_policy": null,
+      "extracted": true,
+      "location_policy": {
+        "type": "region_list",
+        "countries": [],
+        "regions": [
+          "ASIA"
+        ],
+        "timezone_window_utc": null,
+        "required_overlap_hours": null,
+        "overlap_reference_utc": null
+      },
+      "hard_blocks": []
+    }
+  },
+  {
+    "id": "taiwan-explicit",
+    "expected": "eligible",
+    "posting": {
+      "work_mode": "remote",
+      "location": "Remote (Taiwan)",
+      "field_policy": {
+        "type": "country_list",
+        "countries": [
+          "TW"
+        ],
+        "regions": []
+      },
+      "extracted": true,
+      "location_policy": {
+        "type": "country_list",
+        "countries": [
+          "TW"
+        ],
+        "regions": [],
+        "timezone_window_utc": null,
+        "required_overlap_hours": null,
+        "overlap_reference_utc": null
+      },
+      "hard_blocks": []
+    }
+  },
+  {
+    "id": "tz-window-europe",
+    "expected": "blocked",
+    "posting": {
+      "work_mode": "remote",
+      "location": "Remote",
+      "field_policy": null,
+      "extracted": true,
+      "location_policy": {
+        "type": "timezone_window",
+        "countries": [],
+        "regions": [],
+        "timezone_window_utc": {
+          "from_utc": -4,
+          "to_utc": 4
+        },
+        "required_overlap_hours": null,
+        "overlap_reference_utc": null
+      },
+      "hard_blocks": []
+    }
+  },
+  {
+    "id": "tz-window-americas",
+    "expected": "blocked",
+    "posting": {
+      "work_mode": "remote",
+      "location": "Remote",
+      "field_policy": null,
+      "extracted": true,
+      "location_policy": {
+        "type": "timezone_window",
+        "countries": [],
+        "regions": [],
+        "timezone_window_utc": {
+          "from_utc": -8,
+          "to_utc": -3
+        },
+        "required_overlap_hours": null,
+        "overlap_reference_utc": null
+      },
+      "hard_blocks": []
+    }
+  },
+  {
+    "id": "tz-window-asia",
+    "expected": "eligible",
+    "posting": {
+      "work_mode": "remote",
+      "location": "Remote",
+      "field_policy": null,
+      "extracted": true,
+      "location_policy": {
+        "type": "timezone_window",
+        "countries": [],
+        "regions": [],
+        "timezone_window_utc": {
+          "from_utc": 5,
+          "to_utc": 10
+        },
+        "required_overlap_hours": null,
+        "overlap_reference_utc": null
+      },
+      "hard_blocks": []
+    }
+  },
+  {
+    "id": "tz-within-3h-of-utc8",
+    "expected": "eligible",
+    "posting": {
+      "work_mode": "remote",
+      "location": "Remote",
+      "field_policy": null,
+      "extracted": true,
+      "location_policy": {
+        "type": "timezone_window",
+        "countries": [],
+        "regions": [],
+        "timezone_window_utc": {
+          "from_utc": 5,
+          "to_utc": 11
+        },
+        "required_overlap_hours": null,
+        "overlap_reference_utc": null
+      },
+      "hard_blocks": []
+    }
+  },
+  {
+    "id": "apac-with-tz",
+    "expected": "eligible",
+    "posting": {
+      "work_mode": "remote",
+      "location": "Remote - APAC",
+      "field_policy": {
+        "type": "region_list",
+        "countries": [],
+        "regions": [
+          "APAC"
+        ]
+      },
+      "extracted": true,
+      "location_policy": {
+        "type": "region_list",
+        "countries": [],
+        "regions": [
+          "APAC"
+        ],
+        "timezone_window_utc": {
+          "from_utc": 7,
+          "to_utc": 10
+        },
+        "required_overlap_hours": null,
+        "overlap_reference_utc": null
+      },
+      "hard_blocks": []
+    }
+  },
+  {
+    "id": "overlap-pacific-4h",
+    "expected": "blocked",
+    "posting": {
+      "work_mode": "remote",
+      "location": "Remote",
+      "field_policy": null,
+      "extracted": true,
+      "location_policy": {
+        "type": "worldwide",
+        "countries": [],
+        "regions": [],
+        "timezone_window_utc": null,
+        "required_overlap_hours": 4,
+        "overlap_reference_utc": -8
+      },
+      "hard_blocks": []
+    }
+  },
+  {
+    "id": "overlap-eastern-4h",
+    "expected": "blocked",
+    "posting": {
+      "work_mode": "remote",
+      "location": "Remote",
+      "field_policy": null,
+      "extracted": true,
+      "location_policy": {
+        "type": "worldwide",
+        "countries": [],
+        "regions": [],
+        "timezone_window_utc": null,
+        "required_overlap_hours": 4,
+        "overlap_reference_utc": -5
+      },
+      "hard_blocks": []
+    }
+  },
+  {
+    "id": "overlap-cet-2h",
+    "expected": "eligible",
+    "posting": {
+      "work_mode": "remote",
+      "location": "Remote",
+      "field_policy": null,
+      "extracted": true,
+      "location_policy": {
+        "type": "worldwide",
+        "countries": [],
+        "regions": [],
+        "timezone_window_utc": null,
+        "required_overlap_hours": 2,
+        "overlap_reference_utc": 1
+      },
+      "hard_blocks": []
+    }
+  },
+  {
+    "id": "overlap-singapore-4h",
+    "expected": "eligible",
+    "posting": {
+      "work_mode": "remote",
+      "location": "Remote",
+      "field_policy": null,
+      "extracted": true,
+      "location_policy": {
+        "type": "worldwide",
+        "countries": [],
+        "regions": [],
+        "timezone_window_utc": null,
+        "required_overlap_hours": 4,
+        "overlap_reference_utc": 8
+      },
+      "hard_blocks": []
+    }
+  },
+  {
+    "id": "overlap-uk-3h",
+    "expected": "eligible",
+    "posting": {
+      "work_mode": "remote",
+      "location": "Remote",
+      "field_policy": null,
+      "extracted": true,
+      "location_policy": {
+        "type": "worldwide",
+        "countries": [],
+        "regions": [],
+        "timezone_window_utc": null,
+        "required_overlap_hours": 3,
+        "overlap_reference_utc": 0
+      },
+      "hard_blocks": []
+    }
+  },
+  {
+    "id": "title-worldwide-field-us",
+    "expected": "unclear",
+    "posting": {
+      "work_mode": "remote",
+      "location": "United States",
+      "field_policy": {
+        "type": "country_list",
+        "countries": [
+          "US"
+        ],
+        "regions": []
+      },
+      "extracted": true,
+      "location_policy": {
+        "type": "worldwide",
+        "countries": [],
+        "regions": [],
+        "timezone_window_utc": null,
+        "required_overlap_hours": null,
+        "overlap_reference_utc": null
+      },
+      "hard_blocks": []
+    }
+  },
+  {
+    "id": "field-apac-jd-singapore",
+    "expected": "unclear",
+    "posting": {
+      "work_mode": "remote",
+      "location": "Remote - APAC",
+      "field_policy": {
+        "type": "region_list",
+        "countries": [],
+        "regions": [
+          "APAC"
+        ]
+      },
+      "extracted": true,
+      "location_policy": {
+        "type": "country_list",
+        "countries": [
+          "SG"
+        ],
+        "regions": [],
+        "timezone_window_utc": null,
+        "required_overlap_hours": null,
+        "overlap_reference_utc": null
+      },
+      "hard_blocks": []
+    }
+  },
+  {
+    "id": "field-anywhere-jd-eu-payroll",
+    "expected": "blocked",
+    "posting": {
+      "work_mode": "remote",
+      "location": "Anywhere",
+      "field_policy": {
+        "type": "worldwide",
+        "countries": [],
+        "regions": []
+      },
+      "extracted": true,
+      "location_policy": {
+        "type": "region_list",
+        "countries": [],
+        "regions": [
+          "EU"
+        ],
+        "timezone_window_utc": null,
+        "required_overlap_hours": null,
+        "overlap_reference_utc": null
+      },
+      "hard_blocks": []
+    }
+  },
+  {
+    "id": "field-worldwide-jd-tz",
+    "expected": "blocked",
+    "posting": {
+      "work_mode": "remote",
+      "location": "Worldwide",
+      "field_policy": {
+        "type": "worldwide",
+        "countries": [],
+        "regions": []
+      },
+      "extracted": true,
+      "location_policy": {
+        "type": "worldwide",
+        "countries": [],
+        "regions": [],
+        "timezone_window_utc": {
+          "from_utc": -5,
+          "to_utc": 3
+        },
+        "required_overlap_hours": null,
+        "overlap_reference_utc": null
+      },
+      "hard_blocks": []
+    }
+  },
+  {
+    "id": "vague-remote",
+    "expected": "unclear",
+    "posting": {
+      "work_mode": "remote",
+      "location": "Remote",
+      "field_policy": null,
+      "extracted": true,
+      "location_policy": null,
+      "hard_blocks": []
+    }
+  },
+  {
+    "id": "vague-remote-first",
+    "expected": "unclear",
+    "posting": {
+      "work_mode": "remote",
+      "location": "",
+      "field_policy": null,
+      "extracted": true,
+      "location_policy": null,
+      "hard_blocks": []
+    }
+  },
+  {
+    "id": "hybrid",
+    "expected": "blocked",
+    "posting": {
+      "work_mode": "hybrid",
+      "location": "Berlin (Hybrid)",
+      "field_policy": null,
+      "extracted": true,
+      "location_policy": {
+        "type": "onsite_hybrid",
+        "countries": [
+          "DE"
+        ],
+        "regions": [],
+        "timezone_window_utc": null,
+        "required_overlap_hours": null,
+        "overlap_reference_utc": null
+      },
+      "hard_blocks": []
+    }
+  },
+  {
+    "id": "onsite-taipei",
+    "expected": "blocked",
+    "posting": {
+      "work_mode": "onsite",
+      "location": "Taipei",
+      "field_policy": null,
+      "extracted": true,
+      "location_policy": {
+        "type": "onsite_hybrid",
+        "countries": [
+          "TW"
+        ],
+        "regions": [],
+        "timezone_window_utc": null,
+        "required_overlap_hours": null,
+        "overlap_reference_utc": null
+      },
+      "hard_blocks": []
+    }
+  },
+  {
+    "id": "clearance",
+    "expected": "blocked",
+    "posting": {
+      "work_mode": "remote",
+      "location": "Remote",
+      "field_policy": null,
+      "extracted": true,
+      "location_policy": {
+        "type": "country_list",
+        "countries": [
+          "US"
+        ],
+        "regions": [],
+        "timezone_window_utc": null,
+        "required_overlap_hours": null,
+        "overlap_reference_utc": null
+      },
+      "hard_blocks": [
+        {
+          "type": "clearance",
+          "value": "TS/SCI",
+          "countries": []
+        }
+      ]
+    }
+  },
+  {
+    "id": "citizenship",
+    "expected": "blocked",
+    "posting": {
+      "work_mode": "remote",
+      "location": "Remote",
+      "field_policy": null,
+      "extracted": true,
+      "location_policy": {
+        "type": "country_list",
+        "countries": [
+          "US"
+        ],
+        "regions": [],
+        "timezone_window_utc": null,
+        "required_overlap_hours": null,
+        "overlap_reference_utc": null
+      },
+      "hard_blocks": [
+        {
+          "type": "citizenship",
+          "value": "US citizen",
+          "countries": [
+            "US"
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "id": "field-remote-united-states",
+    "expected": "blocked",
+    "posting": {
+      "work_mode": "remote",
+      "location": "Remote, United States",
+      "field_policy": {
+        "type": "country_list",
+        "countries": [
+          "US"
+        ],
+        "regions": []
+      },
+      "extracted": true,
+      "location_policy": null,
+      "hard_blocks": []
+    }
+  },
+  {
+    "id": "field-americas-and-asia",
+    "expected": "eligible",
+    "posting": {
+      "work_mode": "remote",
+      "location": "Remote - Americas; Remote - Asia",
+      "field_policy": {
+        "type": "region_list",
+        "countries": [],
+        "regions": [
+          "AMERICAS",
+          "ASIA"
+        ]
+      },
+      "extracted": true,
+      "location_policy": null,
+      "hard_blocks": []
+    }
+  },
+  {
+    "id": "canada",
+    "expected": "blocked",
+    "posting": {
+      "work_mode": "remote",
+      "location": "Canada",
+      "field_policy": {
+        "type": "country_list",
+        "countries": [
+          "CA"
+        ],
+        "regions": []
+      },
+      "extracted": true,
+      "location_policy": {
+        "type": "country_list",
+        "countries": [
+          "CA"
+        ],
+        "regions": [],
+        "timezone_window_utc": null,
+        "required_overlap_hours": null,
+        "overlap_reference_utc": null
+      },
+      "hard_blocks": []
+    }
+  },
+  {
+    "id": "eea-field",
+    "expected": "blocked",
+    "posting": {
+      "work_mode": "remote",
+      "location": "Remote (EEA)",
+      "field_policy": {
+        "type": "region_list",
+        "countries": [],
+        "regions": [
+          "EEA"
+        ]
+      },
+      "extracted": true,
+      "location_policy": null,
+      "hard_blocks": []
+    }
+  },
+  {
+    "id": "india",
+    "expected": "blocked",
+    "posting": {
+      "work_mode": "remote",
+      "location": "Remote - India",
+      "field_policy": {
+        "type": "country_list",
+        "countries": [
+          "IN"
+        ],
+        "regions": []
+      },
+      "extracted": true,
+      "location_policy": {
+        "type": "country_list",
+        "countries": [
+          "IN"
+        ],
+        "regions": [],
+        "timezone_window_utc": null,
+        "required_overlap_hours": null,
+        "overlap_reference_utc": null
+      },
+      "hard_blocks": []
+    }
+  },
+  {
+    "id": "japan-or-taiwan-field",
+    "expected": "eligible",
+    "posting": {
+      "work_mode": "remote",
+      "location": "Remote, Japan or Taiwan",
+      "field_policy": {
+        "type": "country_list",
+        "countries": [
+          "JP",
+          "TW"
+        ],
+        "regions": []
+      },
+      "extracted": true,
+      "location_policy": null,
+      "hard_blocks": []
+    }
+  }
+]
