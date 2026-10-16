@@ -124,3 +124,9 @@ def test_board_is_skipped_after_three_failures_until_reset():
     stats = crawl(store, adapter_for=lambda ats: FakeAdapter(boards), now=lambda: T0)
     assert stats.boards_ok == 1
     assert store.company_stats()[0]["fail_count"] == 0
+
+
+def test_parse_hn_comment_trims_a_pitch_from_the_company_name():
+    text = "DuckBank - we are looking for people who are excited to join | Engineer | Remote"
+    assert parse_hn_comment(text)[0] == "DuckBank"
+    assert parse_hn_comment("Short Name Inc | Role")[0] == "Short Name Inc"

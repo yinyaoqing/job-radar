@@ -17,7 +17,8 @@ from pydantic import BaseModel, Field
 
 from .textutil import normalize, quote_in
 
-SCHEMA_VERSION = 1
+# Bumped when the schema or the prompt changes meaning; older extractions are redone.
+SCHEMA_VERSION = 2
 EXTRACT_MODEL = "claude-haiku-5-5"
 # USD per million tokens for prompts up to 100K tokens (docs: claude-api models table).
 PRICE_PER_MTOK = {"claude-haiku-5-5": (0.10, 0.50)}
@@ -107,12 +108,27 @@ Every "quote" and every entry of "quotes" must be copied verbatim from the posti
 program can find it with a substring search. Do not paraphrase, translate or join sentences.
 
 Location policy, the field people rely on most:
-- "worldwide": the posting says anyone anywhere may apply.
+- "worldwide": the posting says anyone anywhere may apply. "Remote", "remote-first" or
+  "distributed team" alone does not say where you may live: that is "unknown".
 - "country_list" / "region_list": it names the countries or regions candidates must be in or
   be authorised to work in. Put ISO codes in "countries" and region names in "regions".
 - "timezone_window": it limits candidates to UTC offsets (e.g. "UTC-3 to UTC+3", "Americas time
   zones"). Fill timezone_window_utc. A required overlap of N hours with a team goes in
   required_overlap_hours and overlap_reference_utc.
+- Convert named time zones to standard UTC offsets: Pacific/PST/PT -8, Mountain -7,
+  Central/CST -6, Eastern/EST/ET -5, GMT/UK 0, CET +1, EET +2, IST (India) +5.5, SGT +8,
+  JST +9, AEST +10. "US Pacific or Central time" is timezone_window_utc from -8 to -6.
+- Fixed working hours ("9am-6pm PST", "must work EST business hours") are an overlap
+  requirement: required_overlap_hours = the length of those hours (business hours = 8),
+  overlap_reference_utc = that zone's offset.
+- An overlap or working-hours requirement that does not limit where you live: type
+  "worldwide" with the overlap fields filled.
+- A place that implies a country ("US West Coast", "Bay Area", "South Central US") also goes
+  in countries, and the type is "country_list".
+- Never leave a time-zone limit without numbers: if the posting names a zone, give offsets.
+- Overlap with a team or office in a named city ("our Singapore office") is an overlap
+  requirement with that city's offset; on its own it does not restrict where you live, so
+  use type "worldwide" unless the posting also limits location.
 - "onsite_hybrid": the role needs office attendance.
 - The ATS location field is given separately. If the posting text and that field disagree,
   follow the posting text and quote it.

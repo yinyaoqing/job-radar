@@ -114,6 +114,8 @@ _COUNTRY_NAMES = {
     "us": "US",
     "u.s.": "US",
     "america": "US",
+    "west coast": "US",
+    "east coast": "US",
     "canada": "CA",
     "mexico": "MX",
     "brazil": "BR",
@@ -206,8 +208,6 @@ def policy_from_location_text(text: str | None) -> dict[str, Any] | None:
     (a bare "Remote" says nothing about where)."""
     if not text:
         return None
-    if _WORLDWIDE.search(text):
-        return {"type": "worldwide", "countries": [], "regions": []}
     lowered = f" {text.lower()} "
     countries: set[str] = set()
     regions: set[str] = set()
@@ -223,6 +223,10 @@ def policy_from_location_text(text: str | None) -> dict[str, Any] | None:
         if token in _US_STATES and re.search(r"remote", text, re.I):
             countries.add("US")
     if not countries and not regions:
+        # "Anywhere" counts only when no place is named ("Anywhere, United States" is
+        # the US, not the world).
+        if _WORLDWIDE.search(text):
+            return {"type": "worldwide", "countries": [], "regions": []}
         return None
     return {
         "type": "country_list" if countries and not regions else "region_list",
@@ -243,12 +247,20 @@ def _overlap_hours(candidate: Candidate, reference_utc: float) -> float:
     return max(0.0, best)
 
 
+def has_time_limit(policy: dict[str, Any] | None) -> bool:
+    if not policy:
+        return False
+    window = policy.get("timezone_window_utc") or {}
+    complete = window.get("from_utc") is not None and window.get("to_utc") is not None
+    return complete or bool(policy.get("required_overlap_hours"))
+
+
 def judge_policy(policy: dict[str, Any], candidate: Candidate) -> tuple[str, str]:
     """(label, reason) for one policy, ignoring where it came from."""
     kind = policy.get("type", "unknown")
     if kind == "onsite_hybrid":
         return "blocked", "需要進辦公室"
-    if kind == "unknown":
+    if kind == "unknown" and not has_time_limit(policy):
         return "unclear", "沒有說明可申請地區"
 
     label, reason = "eligible", "不限地區"
@@ -286,6 +298,14 @@ def judge_policy(policy: dict[str, Any], candidate: Candidate) -> tuple[str, str
                 f"要求與 UTC{reference:+g} 重疊 {hours:g} 小時，只能重疊 {overlap:g} 小時",
             )
         reason += f"；與 UTC{reference:+g} 可重疊 {overlap:g} 小時"
+    elif kind == "timezone_window" and not window:
+        # A time-zone limit the extraction could not turn into offsets ("Pacific time",
+        # "West Coast") is a limit all the same; never read it as "anywhere".
+        return "unclear", "有時區限制，但沒有可判斷的範圍"
+    if kind == "unknown":
+        # Time limits are checked even when the extraction found no place limit, so a
+        # failed overlap still blocks; passing them does not make the place known.
+        return "unclear", f"沒有說明可申請地區（時區條件符合：{reason.removeprefix('不限地區；')}）"
     return label, reason
 
 
@@ -307,7 +327,7 @@ def assess(
     verified = ((extraction or {}).get("checks") or {}).get("location_verified", True)
     jd_verdict = None
     quotes: list[str] = []
-    if policy and policy.get("type") != "unknown" and verified:
+    if policy and (policy.get("type") != "unknown" or has_time_limit(policy)) and verified:
         jd_verdict = judge_policy(policy, candidate)
         quotes = list(policy.get("quotes") or [])
 

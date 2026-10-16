@@ -217,6 +217,7 @@ def test_edited_jd_gets_a_new_extraction_but_shows_the_old_meanwhile():
             {"type": "region_list", "countries": ["US"], "regions": ["LATAM"]},
         ),
         ("Remote - Asia Pacific", {"type": "region_list", "countries": [], "regions": ["APAC"]}),
+        ("Anywhere, United States", {"type": "country_list", "countries": ["US"], "regions": []}),
     ],
 )
 def test_policy_from_location_text(text, expected):
@@ -298,3 +299,31 @@ def test_sample_feed_is_current():
     assert json.loads(SAMPLE_FEED.read_text(encoding="utf-8")) == build_sample_feed(), (
         "run: uv run job-radar export --sample"
     )
+
+
+def test_timezone_limit_without_offsets_is_unclear_not_anywhere():
+    extraction = {
+        "location_policy": {"type": "timezone_window", "timezone_window_utc": None},
+        "checks": {"location_verified": True},
+    }
+    verdict = assess(work_mode="remote", location_text="Remote", extraction=extraction)
+    assert verdict.label == "unclear"
+    assert policy_from_location_text("Remote (West Coast)")["countries"] == ["US"]
+
+
+def test_failed_overlap_blocks_even_when_place_is_unknown():
+    unknown_with_overlap = {
+        "location_policy": {
+            "type": "unknown",
+            "required_overlap_hours": 4,
+            "overlap_reference_utc": -5,
+        },
+        "checks": {"location_verified": True},
+    }
+    assert (
+        assess(work_mode="remote", location_text="Remote", extraction=unknown_with_overlap).label
+        == "blocked"
+    )
+    unknown_with_overlap["location_policy"]["overlap_reference_utc"] = 1
+    verdict = assess(work_mode="remote", location_text="Remote", extraction=unknown_with_overlap)
+    assert verdict.label == "unclear"

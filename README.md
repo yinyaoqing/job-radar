@@ -5,6 +5,14 @@
 - 規格：[docs/spec.md](docs/spec.md)（雲端版含流程圖、架構圖與時程：[Claude Docs](https://claude.ai/code/artifact/e4f6a916-561d-46bc-b4cc-b8fb92a606e6)）
 - 狀態（10/16）：ATS adapters（Ashby、Greenhouse、Lever、Recruitee、Workable）、每日抓取管線、公司匯入（remoteintech、HN）、全遠端與領域分類、LLM 抽取、資格判斷、地區陷阱 eval、公開 JSON 匯出、網站、每日 Email、CV 草稿與 CI 已完成；下一步是部署與 eval 實跑
 
+## 評估
+
+| Eval | 結果（2026-10-16） | 目標 |
+| --- | --- | --- |
+| 地區陷阱集（48 筆，LLM 抽取 + 規則，連跑 3 次） | 準確率 100%、「不可申請」召回率 100%，每次 US$0.024 | ≥ 90% / ≥ 95% |
+
+細節見 [evals/README.md](evals/README.md)。
+
 ## 目錄
 
 | 路徑 | 內容 |

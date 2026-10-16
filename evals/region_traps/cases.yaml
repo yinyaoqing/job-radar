@@ -319,3 +319,33 @@
   text: Remote role.
   policy: {type: unknown}
   expected: eligible
+
+# --- From the first real crawl (2026-10-16), reworded and de-identified ---
+
+- id: us-west-coast-based
+  trap: named_timezone
+  location: Remote (West Coast)
+  text: This position is based on the US West Coast and can be remote; Bay Area residents may also use our office.
+  policy: {type: country_list, countries: [US], tz: [-8, -7]}
+  expected: blocked
+
+- id: us-regions-or-pacific-time
+  trap: named_timezone
+  location: Remote
+  text: This is a full-time remote role for candidates living in the South Central US or in the Pacific time zone.
+  policy: {type: country_list, countries: [US], tz: [-8, -6]}
+  expected: blocked
+
+- id: fixed-shift-pacific
+  trap: overlap
+  location: Remote
+  text: "Day shift: Tuesday to Friday, 9am-6pm PST."
+  policy: {type: worldwide, overlap: [9, -8]}
+  expected: blocked
+
+- id: us-central-business-hours
+  trap: overlap
+  location: Remote
+  text: You must work US Central (UTC-6) business hours.
+  policy: {type: worldwide, overlap: [8, -6]}
+  expected: blocked

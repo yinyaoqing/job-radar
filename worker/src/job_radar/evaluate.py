@@ -149,7 +149,7 @@ WEB_FIXTURE = DEFAULT_CASES.parents[2] / "web" / "lib" / "__fixtures__" / "regio
 def web_fixture(cases: list[dict[str, Any]]) -> list[dict[str, Any]]:
     """The region trap cases as feed postings, for web/lib/eligibility.test.ts: the site's
     port of the rules must reach the same verdicts from the same feed fields."""
-    from .eligibility import policy_from_location_text
+    from .eligibility import has_time_limit, policy_from_location_text
     from .export import hard_blocks
 
     fixture = []
@@ -165,7 +165,7 @@ def web_fixture(cases: list[dict[str, Any]]) -> list[dict[str, Any]]:
                     "field_policy": policy_from_location_text(case.get("location")),
                     "extracted": True,
                     "location_policy": None
-                    if policy["type"] == "unknown"
+                    if policy["type"] == "unknown" and not has_time_limit(policy)
                     else {k: v for k, v in policy.items() if k != "quotes"},
                     "hard_blocks": hard_blocks(
                         {"hard_requirements": case.get("hard_requirements", [])}

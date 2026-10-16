@@ -155,6 +155,9 @@ def parse_hn_comment(text: str) -> tuple[str, list[str]]:
     urls = re.findall(r'href="([^"]+)"', unescaped)
     plain = re.sub(r"<[^>]+>", " ", unescaped)
     company = re.sub(r"\s+", " ", plain.split("|", 1)[0]).strip()
+    if len(company) > 40:
+        # "Acme - we are looking for people who..." : keep the name before the pitch.
+        company = re.split(r"\s+[-–—(:]\s*|,\s", company, maxsplit=1)[0]
     return company[:80], urls
 
 

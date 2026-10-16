@@ -66,10 +66,16 @@ export function overlapHours(candidate: Candidate, referenceUtc: number): number
   return Math.max(0, best);
 }
 
+export function hasTimeLimit(policy: LocationPolicy | null | undefined): boolean {
+  if (!policy) return false;
+  const w = policy.timezone_window_utc;
+  return (w?.from_utc != null && w?.to_utc != null) || !!policy.required_overlap_hours;
+}
+
 export function judgePolicy(policy: LocationPolicy, candidate: Candidate, regions: Regions): Verdict {
   const kind = policy.type ?? "unknown";
   if (kind === "onsite_hybrid") return ["blocked", "需要進辦公室"];
-  if (kind === "unknown") return ["unclear", "沒有說明可申請地區"];
+  if (kind === "unknown" && !hasTimeLimit(policy)) return ["unclear", "沒有說明可申請地區"];
 
   let label: Label = "eligible";
   let reason = "不限地區";
@@ -106,6 +112,13 @@ export function judgePolicy(policy: LocationPolicy, candidate: Candidate, region
       return ["blocked", `要求與 UTC${signed(reference)} 重疊 ${hours} 小時，只能重疊 ${overlap} 小時`];
     }
     reason += `；與 UTC${signed(reference)} 可重疊 ${overlap} 小時`;
+  } else if (kind === "timezone_window" && !window) {
+    // A time-zone limit without offsets is still a limit; never read it as "anywhere".
+    return ["unclear", "有時區限制，但沒有可判斷的範圍"];
+  }
+  if (kind === "unknown") {
+    // Time limits still block when the place is unknown; passing them does not make it known.
+    return ["unclear", `沒有說明可申請地區（時區條件符合：${reason.replace(/^不限地區；/, "")}）`];
   }
   return [label, reason];
 }
@@ -127,7 +140,10 @@ export function assess(posting: Posting, candidate: Candidate, regions: Regions)
   const fromText = posting.field_policy;
   const textVerdict = fromText ? judgePolicy(fromText, candidate, regions) : null;
   const policy = posting.location_policy;
-  const jdVerdict = policy && policy.type !== "unknown" ? judgePolicy(policy, candidate, regions) : null;
+  const jdVerdict =
+    policy && (policy.type !== "unknown" || hasTimeLimit(policy))
+      ? judgePolicy(policy, candidate, regions)
+      : null;
 
   const blocked = hardBlock(posting.hard_blocks, candidate);
   if (blocked) return { label: "blocked", reasons: [blocked] };

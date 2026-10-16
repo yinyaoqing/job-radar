@@ -979,5 +979,97 @@
       "location_policy": null,
       "hard_blocks": []
     }
+  },
+  {
+    "id": "us-west-coast-based",
+    "expected": "blocked",
+    "posting": {
+      "work_mode": "remote",
+      "location": "Remote (West Coast)",
+      "field_policy": {
+        "type": "country_list",
+        "countries": [
+          "US"
+        ],
+        "regions": []
+      },
+      "extracted": true,
+      "location_policy": {
+        "type": "country_list",
+        "countries": [
+          "US"
+        ],
+        "regions": [],
+        "timezone_window_utc": {
+          "from_utc": -8,
+          "to_utc": -7
+        },
+        "required_overlap_hours": null,
+        "overlap_reference_utc": null
+      },
+      "hard_blocks": []
+    }
+  },
+  {
+    "id": "us-regions-or-pacific-time",
+    "expected": "blocked",
+    "posting": {
+      "work_mode": "remote",
+      "location": "Remote",
+      "field_policy": null,
+      "extracted": true,
+      "location_policy": {
+        "type": "country_list",
+        "countries": [
+          "US"
+        ],
+        "regions": [],
+        "timezone_window_utc": {
+          "from_utc": -8,
+          "to_utc": -6
+        },
+        "required_overlap_hours": null,
+        "overlap_reference_utc": null
+      },
+      "hard_blocks": []
+    }
+  },
+  {
+    "id": "fixed-shift-pacific",
+    "expected": "blocked",
+    "posting": {
+      "work_mode": "remote",
+      "location": "Remote",
+      "field_policy": null,
+      "extracted": true,
+      "location_policy": {
+        "type": "worldwide",
+        "countries": [],
+        "regions": [],
+        "timezone_window_utc": null,
+        "required_overlap_hours": 9,
+        "overlap_reference_utc": -8
+      },
+      "hard_blocks": []
+    }
+  },
+  {
+    "id": "us-central-business-hours",
+    "expected": "blocked",
+    "posting": {
+      "work_mode": "remote",
+      "location": "Remote",
+      "field_policy": null,
+      "extracted": true,
+      "location_policy": {
+        "type": "worldwide",
+        "countries": [],
+        "regions": [],
+        "timezone_window_utc": null,
+        "required_overlap_hours": 8,
+        "overlap_reference_utc": -6
+      },
+      "hard_blocks": []
+    }
   }
 ]

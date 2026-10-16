@@ -20,7 +20,7 @@ from pathlib import Path
 from typing import Any
 
 from .classify import CATEGORIES, is_general_application
-from .eligibility import REGIONS, policy_from_location_text
+from .eligibility import REGIONS, has_time_limit, policy_from_location_text
 from .extract import SCHEMA_VERSION
 from .store import Store
 
@@ -66,7 +66,9 @@ def _from_extraction(extraction: dict[str, Any] | None) -> dict[str, Any]:
         return {"extracted": False}
     checks = extraction.get("checks") or {}
     policy = extraction.get("location_policy") or {}
-    verified = bool(checks.get("location_verified")) and policy.get("type") != "unknown"
+    verified = bool(checks.get("location_verified")) and (
+        policy.get("type") != "unknown" or has_time_limit(policy)
+    )
     blocks = hard_blocks(extraction)
     salary = extraction.get("salary")
     if salary and salary.get("min") is None and salary.get("max") is None:
