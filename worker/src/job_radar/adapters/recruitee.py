@@ -9,6 +9,7 @@ from __future__ import annotations
 from datetime import UTC, datetime
 from typing import Any
 
+from ..classify import work_mode_from_text
 from .base import Adapter, AdapterError, Posting
 
 BASE_URL = "https://{org}.recruitee.com/api/offers/"
@@ -40,11 +41,22 @@ class RecruiteeAdapter(Adapter):
             title=offer["title"],
             url=offer["careers_url"],
             location=offer.get("location") or None,
-            is_remote=offer.get("remote"),
+            work_mode=_work_mode(offer),
+            department=offer.get("department") or None,
             published_at=parse_recruitee_time(offer.get("published_at")),
             description="\n".join(p for p in parts if p) or None,
             raw=offer,
         )
+
+
+def _work_mode(offer: dict[str, Any]) -> str:
+    if offer.get("remote"):
+        return "remote"
+    if offer.get("hybrid"):
+        return "hybrid"
+    if offer.get("on_site"):
+        return "onsite"
+    return work_mode_from_text(offer.get("location"))
 
 
 def parse_recruitee_time(value: str | None) -> datetime | None:

@@ -19,6 +19,8 @@ Job Radar 是一個每天自動抓取遠端職缺、到 ATS 確認職缺仍開�
 
 目標使用者：身處亞洲時區（例如台灣 UTC+8）、尋找全遠端資深前端、全端或 AI 產品工程職缺的工程師。MVP 先服務單一使用者，之後再開放多人使用。
 
+**蒐集範圍**（10/16 調整）：所有全遠端職缺，不限工程。每筆依職稱與部門歸入 12 個領域（工程、資料與分析、產品、設計、行銷、業務、客戶成功與支援、營運、財務、人資與招募、法務與合規、內容與社群），網站可依領域篩選。混合辦公與到辦公室的職缺仍存在資料庫，但不出現在公開網站。個人化功能（證據庫、評分、CV）不受影響，作者自用時篩選工程類。
+
 典型的手動流程與痛點：
 
 | 步驟 | 現在怎麼做 | 痛點（實際發生過） |
@@ -39,6 +41,7 @@ MVP 只做「抓、驗、判、排、寫」五個動作，不自動送出任何�
 | 功能 | MVP | 說明 |
 | --- | --- | --- |
 | 來源抓取 | 做 | ATS 公開 API（Ashby、Greenhouse、Lever、Recruitee）+ HN Who's Hiring + 104 全遠端 + GitHub 公司清單與「谁在招人」；公司清單可自訂 |
+| 全遠端判斷與領域篩選 | 做 | 優先用 ATS 的結構化欄位（Ashby、Lever 的 workplaceType，Recruitee 的 remote），沒有時讀地點文字；領域用職稱與部門的規則分類；一般投遞（talent pool）不列出 |
 | 開放狀態驗證 | 做 | 每筆推薦前都到來源 ATS 重新確認，記錄 last\_verified\_at |
 | 申請資格判斷 | 做 | 地區、時區重疊、學歷、簽證／合約形式；輸出 eligible / blocked / unclear + 引文 |
 | 適配評分 | 做 | 對照「經歷證據庫」打分，列出符合項與缺口 |
@@ -106,7 +109,7 @@ GitHub 上的來源主要用來「發現公司」與「收華語職缺」，從�
 | 表 | 主要欄位 | 用途 |
 | --- | --- | --- |
 | `companies` | id, name, ats, ats\_org, watch, notes | 關注公司清單與 ATS 對應 |
-| `postings` | id, company\_id, ats\_job\_id, title, url, status (open / closed), first\_seen\_at, last\_verified\_at | 每個職缺一筆，狀態由驗證步驟更新 |
+| `postings` | id, company\_id, ats\_job\_id, title, url, work\_mode (remote / hybrid / onsite / unknown), department, category, status (open / closed), first\_seen\_at, last\_verified\_at | 每個職缺一筆，狀態由驗證步驟更新 |
 | `posting_snapshots` | posting\_id, fetched\_at, raw\_json, jd\_text, content\_hash | JD 原文版本；內容變動才新增一筆 |
 | `extractions` | snapshot\_id, model, schema\_version, payload (JSON), cost\_usd | LLM 結構化抽取結果（見下節 schema） |
 | `assessments` | posting\_id, eligibility (eligible / blocked / unclear), eligibility\_quotes, fit\_score, matched\_evidence\_ids, gaps, rationale | 資格判斷與適配評分 |
@@ -212,7 +215,7 @@ Next.js + shadcn/ui，四個頁面；每天的主要動作都在第一個頁面�
 | 層 | 內容 | 執行位置 | 成本由誰負擔 |
 | --- | --- | --- | --- |
 | 公共資料 | 公司清單、職缺、開放驗證、地區與時區判斷、抽取結果 | 自己的主機，每日 cron，輸出 `feed.json` | 營運方，固定成本 |
-| 網站 | 職缺瀏覽與篩選，不需登入 | 靜態託管 | 營運方，接近零 |
+| 網站 | 全遠端職缺瀏覽，依領域篩選，不需登入 | 靜態託管 | 營運方，接近零 |
 | 個人資料 | 證據庫、適配評分、CV 草稿、申請看板 | 使用者的瀏覽器；LLM 用使用者自己的 key | 使用者 |
 | CI | lint、測試、每晚 ATS 契約檢查、網站建置 | GitHub Actions | 公開 repo 免費 |
 
@@ -222,7 +225,7 @@ Next.js + shadcn/ui，四個頁面；每天的主要動作都在第一個頁面�
 
 | 功能 | 免費（開源或公開網站） | 付費（託管） |
 | --- | --- | --- |
-| 職缺 | 列表、開放驗證、地區篩選 | 更多來源、新職缺即時通知 |
+| 職缺 | 列表、開放驗證、領域與地區篩選 | 更多來源、新職缺即時通知 |
 | 個人功能 | 自備 API key，資料在瀏覽器 | 不需自備 key、跨裝置同步 |
 | 每日摘要 | 網頁 | Email 或推播 |
 
@@ -250,6 +253,7 @@ Next.js + shadcn/ui，四個頁面；每天的主要動作都在第一個頁面�
 - 需要 LLM 抽取的來源（HN Who's Hiring、谁在招人）移到第 2 週，和抽取一起做；104 也放在第 2 週，列為可失效來源。
 - CI 從第 6 週提前到第 1 週；第 6 週只把四個 eval 接成合併門檻。
 - 第 1 週剩下的時間改做公司清單擴充：remoteintech 886 家只有 17 家的徵才網址直接指向支援的 ATS，其中 5 家已失效；以 slug 探測 asia-pacific 23 家只命中 1 家。下一步加 Workable adapter，並從 HN 留言裡的 ATS 連結收集公司。
+- 範圍改為全遠端、不限職能：已實作全遠端判斷與 12 個領域分類。以 51 筆真實全遠端職缺調整規則後全部有分類；公司變多後要持續補規則，第 2 週的 LLM 抽取可以接手規則判斷不了的職缺。
 
 > 圖：開發與部署時程 · 6 週、2 個里程碑，ATS adapters 已提前完成（截至 10/16）（見[雲端規格文件](https://claude.ai/code/artifact/e4f6a916-561d-46bc-b4cc-b8fb92a606e6)）
 

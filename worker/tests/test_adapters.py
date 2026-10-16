@@ -58,7 +58,25 @@ def test_ashby_list_skips_unlisted():
         {"id": "2", "title": "B", "jobUrl": "u2", "isListed": False},
     ]
     adapter = AshbyAdapter(client(lambda r: httpx.Response(200, json={"jobs": jobs})))
-    assert [p.ats_job_id for p in adapter.list("acme")] == ["1"]
+    [posting] = adapter.list("acme")
+    assert posting.ats_job_id == "1"
+    assert posting.work_mode == "remote"
+
+
+def test_ashby_workplace_type_beats_location_text():
+    job = {
+        "id": "1",
+        "title": "IT support technician",
+        "jobUrl": "u",
+        "isListed": True,
+        "location": "Albany, NY",
+        "workplaceType": "OnSite",
+        "isRemote": False,
+        "department": "Administration",
+    }
+    adapter = AshbyAdapter(client(lambda r: httpx.Response(200, json={"jobs": [job]})))
+    [posting] = adapter.list("acme")
+    assert (posting.work_mode, posting.department) == ("onsite", "Administration")
 
 
 # --- Greenhouse ------------------------------------------------------------
@@ -83,6 +101,24 @@ def test_greenhouse_unescapes_content():
     assert posting.ats_job_id == "5"
 
 
+def test_greenhouse_list_asks_for_content_and_reads_departments():
+    job = {
+        "id": 7,
+        "title": "Recruiter, GTM",
+        "absolute_url": "u",
+        "location": {"name": "Remote, United States"},
+        "departments": [{"name": "Talent Acquisition"}],
+        "offices": [],
+    }
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        assert request.url.params["content"] == "true"
+        return httpx.Response(200, json={"jobs": [job]})
+
+    [posting] = GreenhouseAdapter(client(handler)).list("acme")
+    assert (posting.work_mode, posting.department) == ("remote", "Talent Acquisition")
+
+
 # --- Lever -----------------------------------------------------------------
 
 
@@ -97,7 +133,7 @@ def test_lever_parses_epoch_ms_and_locations():
     }
     posting = LeverAdapter(client(lambda r: httpx.Response(200, json=job))).get("acme", "x")
     assert posting.location == "Asia / Taiwan, Taipei"
-    assert posting.is_remote is True
+    assert posting.work_mode == "remote"
     assert posting.published_at.year == 2026
 
 
@@ -128,7 +164,7 @@ def test_recruitee_list_uses_slug_and_parses_time():
     assert posting.ats_job_id == "frontend-engineer-2"
     assert posting.published_at.isoformat() == "2026-10-15T09:31:36+00:00"
     assert posting.description == "<p>Build UI</p>\n<p>React</p>"
-    assert posting.is_remote is True
+    assert posting.work_mode == "remote"
 
 
 def test_recruitee_get_and_404():

@@ -17,6 +17,7 @@ from pathlib import Path
 from typing import Any
 
 from .adapters import Posting
+from .classify import classify
 
 SCHEMA = """
 CREATE TABLE IF NOT EXISTS companies (
@@ -40,7 +41,9 @@ CREATE TABLE IF NOT EXISTS postings (
     title            TEXT NOT NULL,
     url              TEXT NOT NULL,
     location         TEXT,
-    is_remote        INTEGER,
+    work_mode        TEXT NOT NULL DEFAULT 'unknown',
+    department       TEXT,
+    category         TEXT NOT NULL DEFAULT 'other',
     published_at     TEXT,
     status           TEXT NOT NULL CHECK (status IN ('open', 'closed')),
     first_seen_at    TEXT NOT NULL,
@@ -68,6 +71,15 @@ CREATE TABLE IF NOT EXISTS runs (
     cost_usd    REAL NOT NULL DEFAULT 0
 );
 """
+
+# Columns added after the first schema; older databases get them on open.
+ADDED_COLUMNS = {
+    "postings": {
+        "work_mode": "TEXT NOT NULL DEFAULT 'unknown'",
+        "department": "TEXT",
+        "category": "TEXT NOT NULL DEFAULT 'other'",
+    },
+}
 
 COMPANY_EXTRA_COLUMNS = {"watch", "source", "website", "region", "remote_policy", "technologies"}
 
@@ -99,6 +111,15 @@ class Store:
         self.db.row_factory = sqlite3.Row
         self.db.execute("PRAGMA foreign_keys = ON")
         self.db.executescript(SCHEMA)
+        self._add_missing_columns()
+
+    def _add_missing_columns(self) -> None:
+        for table, columns in ADDED_COLUMNS.items():
+            have = {r["name"] for r in self.db.execute(f"PRAGMA table_info({table})")}
+            for name, decl in columns.items():
+                if name not in have:
+                    self.db.execute(f"ALTER TABLE {table} ADD COLUMN {name} {decl}")
+        self.db.commit()
 
     def close(self) -> None:
         self.db.close()
@@ -159,24 +180,27 @@ class Store:
                 p.title,
                 p.url,
                 p.location,
-                None if p.is_remote is None else int(p.is_remote),
+                p.work_mode,
+                p.department,
+                classify(p.title, p.department),
                 p.published_at.isoformat() if p.published_at else None,
             )
             row = known.get(p.ats_job_id)
             if row is None:
                 cur = self.db.execute(
                     """INSERT INTO postings (company_id, ats_job_id, title, url, location,
-                           is_remote, published_at, status, first_seen_at, last_verified_at)
-                       VALUES (?, ?, ?, ?, ?, ?, ?, 'open', ?, ?)""",
+                           work_mode, department, category, published_at, status,
+                           first_seen_at, last_verified_at)
+                       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'open', ?, ?)""",
                     (company_id, p.ats_job_id, *fields, ts, ts),
                 )
                 posting_id, last_hash = cur.lastrowid, None
                 result.new += 1
             else:
                 self.db.execute(
-                    """UPDATE postings SET title = ?, url = ?, location = ?, is_remote = ?,
-                           published_at = ?, status = 'open', last_verified_at = ?,
-                           closed_at = NULL
+                    """UPDATE postings SET title = ?, url = ?, location = ?, work_mode = ?,
+                           department = ?, category = ?, published_at = ?, status = 'open',
+                           last_verified_at = ?, closed_at = NULL
                        WHERE id = ?""",
                     (*fields, ts, row["id"]),
                 )
@@ -201,13 +225,15 @@ class Store:
         self.db.commit()
         return result
 
-    def open_postings(self) -> list[sqlite3.Row]:
-        return self.db.execute(
-            """SELECT p.*, c.name AS company, c.ats, c.ats_org, c.website, c.region
-               FROM postings p JOIN companies c ON c.id = p.company_id
-               WHERE p.status = 'open'
-               ORDER BY p.first_seen_at DESC, p.id DESC"""
-        ).fetchall()
+    def open_postings(self, work_mode: str | None = None) -> list[sqlite3.Row]:
+        sql = """SELECT p.*, c.name AS company, c.ats, c.ats_org, c.website, c.region
+                 FROM postings p JOIN companies c ON c.id = p.company_id
+                 WHERE p.status = 'open'"""
+        params: tuple[str, ...] = ()
+        if work_mode:
+            sql += " AND p.work_mode = ?"
+            params = (work_mode,)
+        return self.db.execute(sql + " ORDER BY p.first_seen_at DESC, p.id DESC", params).fetchall()
 
     # --- runs --------------------------------------------------------------
 

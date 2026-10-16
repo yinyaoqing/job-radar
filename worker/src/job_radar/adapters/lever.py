@@ -5,9 +5,11 @@ from __future__ import annotations
 from datetime import UTC, datetime
 from typing import Any
 
+from ..classify import work_mode_from_text
 from .base import Adapter, AdapterError, Posting
 
 BASE_URL = "https://api.lever.co/v0/postings/{org}"
+WORKPLACE_TYPES = {"remote": "remote", "hybrid": "hybrid", "onsite": "onsite"}
 
 
 class LeverAdapter(Adapter):
@@ -26,6 +28,7 @@ class LeverAdapter(Adapter):
     def _to_posting(self, org: str, job: dict[str, Any]) -> Posting:
         categories = job.get("categories") or {}
         locations = categories.get("allLocations") or [categories.get("location")]
+        location = " / ".join(loc for loc in locations if loc) or None
         created = job.get("createdAt")
         return Posting(
             ats=self.name,
@@ -33,8 +36,10 @@ class LeverAdapter(Adapter):
             ats_job_id=job["id"],
             title=job["text"],
             url=job["hostedUrl"],
-            location=" / ".join(loc for loc in locations if loc) or None,
-            is_remote=job.get("workplaceType") == "remote" if job.get("workplaceType") else None,
+            location=location,
+            work_mode=WORKPLACE_TYPES.get(job.get("workplaceType") or "")
+            or work_mode_from_text(location),
+            department=categories.get("team") or categories.get("department"),
             published_at=datetime.fromtimestamp(created / 1000, tz=UTC) if created else None,
             description=job.get("descriptionPlain"),
             raw=job,

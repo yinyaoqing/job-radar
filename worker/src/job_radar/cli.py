@@ -1,13 +1,14 @@
 """Command line entry point.
 
-job-radar list  <ats> <org>          # open postings on a board
+job-radar list  <ats> <org> [--remote] [--category C]  # open postings on a board
 job-radar check <ats> <org> <job_id> # is this posting still open?
 
 job-radar companies add <ats> <org> [--name NAME]
 job-radar companies import-remoteintech [--probe] [--region worldwide ...]
 job-radar companies list
 job-radar crawl                      # fetch every watched board, open/close postings
-job-radar export --out feed.json     # public JSON feed for the static site
+job-radar postings [--category C] [--all-modes]  # open postings in the database
+job-radar export --out feed.json     # public JSON feed (fully remote, all domains)
 
 The database defaults to ``job-radar.db``; set ``--db`` or ``JOB_RADAR_DB``.
 """
@@ -21,6 +22,7 @@ from datetime import UTC, datetime
 from pathlib import Path
 
 from .adapters import ADAPTERS, AdapterError
+from .classify import CATEGORIES, classify
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -32,6 +34,8 @@ def main(argv: list[str] | None = None) -> int:
     p_list.add_argument("ats", choices=sorted(ADAPTERS))
     p_list.add_argument("org")
     p_list.add_argument("--grep", help="only titles containing this text (case-insensitive)")
+    p_list.add_argument("--remote", action="store_true", help="only fully remote postings")
+    p_list.add_argument("--category", choices=list(CATEGORIES), help="only this domain")
 
     p_check = sub.add_parser("check", help="check whether one posting is still open")
     p_check.add_argument("ats", choices=sorted(ADAPTERS))
@@ -57,6 +61,12 @@ def main(argv: list[str] | None = None) -> int:
 
     sub.add_parser("crawl", help="fetch every watched board and update postings")
 
+    p_postings = sub.add_parser("postings", help="open postings in the database")
+    p_postings.add_argument("--category", choices=list(CATEGORIES), help="only this domain")
+    p_postings.add_argument(
+        "--all-modes", action="store_true", help="include hybrid and onsite postings"
+    )
+
     p_export = sub.add_parser("export", help="write the public JSON feed")
     p_export.add_argument("--out", type=Path, default=Path("public/feed.json"))
 
@@ -76,6 +86,8 @@ def main(argv: list[str] | None = None) -> int:
             return _companies_command(args, store)
         if args.command == "crawl":
             return _crawl_command(store)
+        if args.command == "postings":
+            return _postings_command(args, store)
         return _export_command(args, store)
     finally:
         store.close()
@@ -92,8 +104,17 @@ def _board_command(args: argparse.Namespace) -> int:
             postings = adapter.list(args.org)
             if args.grep:
                 postings = [p for p in postings if args.grep.lower() in p.title.lower()]
-            for p in postings:
-                print(f"{p.ats_job_id}\t{p.title}\t{p.location or '-'}\t{p.url}")
+            if args.remote:
+                postings = [p for p in postings if p.work_mode == "remote"]
+            labelled = [(p, classify(p.title, p.department)) for p in postings]
+            if args.category:
+                labelled = [(p, c) for p, c in labelled if c == args.category]
+            postings = [p for p, _ in labelled]
+            for p, category in labelled:
+                print(
+                    f"{p.ats_job_id}\t{p.title}\t{category}\t{p.work_mode}\t"
+                    f"{p.location or '-'}\t{p.url}"
+                )
             print(f"{len(postings)} postings", file=sys.stderr)
         else:
             posting = adapter.get(args.org, args.job_id)
@@ -160,6 +181,19 @@ def _crawl_command(store) -> int:
         print(f"  {err}", file=sys.stderr)
     # Partial failure is normal (a board moves ATS); only fail when nothing worked.
     return 1 if stats.boards_failed and not stats.boards_ok else 0
+
+
+def _postings_command(args: argparse.Namespace, store) -> int:
+    rows = store.open_postings(work_mode=None if args.all_modes else "remote")
+    if args.category:
+        rows = [r for r in rows if r["category"] == args.category]
+    for r in rows:
+        print(
+            f"{r['company']}\t{r['title']}\t{r['category']}\t{r['work_mode']}\t"
+            f"{r['location'] or '-'}\t{r['url']}"
+        )
+    print(f"{len(rows)} postings", file=sys.stderr)
+    return 0
 
 
 def _export_command(args: argparse.Namespace, store) -> int:

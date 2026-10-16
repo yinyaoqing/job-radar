@@ -14,7 +14,13 @@ from job_radar.store import Store
 T0 = datetime(2026, 10, 19, 23, 0, tzinfo=UTC)
 
 
-def posting(job_id: str, title: str = "Frontend Engineer", description: str = "jd") -> Posting:
+def posting(
+    job_id: str,
+    title: str = "Frontend Engineer",
+    description: str = "jd",
+    work_mode: str = "remote",
+    department: str | None = None,
+) -> Posting:
     return Posting(
         ats="lever",
         org="acme",
@@ -22,7 +28,8 @@ def posting(job_id: str, title: str = "Frontend Engineer", description: str = "j
         title=title,
         url=f"https://jobs.lever.co/acme/{job_id}",
         location="Remote",
-        is_remote=True,
+        work_mode=work_mode,
+        department=department,
         description=description,
         raw={"id": job_id},
     )
@@ -189,9 +196,52 @@ def test_feed_has_open_postings_without_jd_text(tmp_path):
     assert feed["count"] == 1
     item = feed["postings"][0]
     assert item["id"] == "lever:acme:a"
-    assert item["is_remote"] is True
+    assert item["work_mode"] == "remote"
+    assert item["category"] == "engineering"
     assert "secret-ish" not in json.dumps(feed)
 
     out = tmp_path / "public" / "feed.json"
     write_feed(store, out, T0)
     assert json.loads(out.read_text(encoding="utf-8"))["count"] == 1
+
+
+def test_feed_is_remote_only_and_counts_every_category():
+    store = Store()
+    cid, _ = store.add_company("Acme", "lever", "acme", now=T0)
+    store.sync_board(
+        cid,
+        [
+            posting("eng", "Backend Engineer"),
+            posting("mkt", "Growth Marketing Manager"),
+            posting("hyb", "Recruiter", work_mode="hybrid"),
+            posting("ons", "Accountant", work_mode="onsite"),
+        ],
+        T0,
+    )
+    feed = build_feed(store, T0)
+    assert {p["id"].split(":")[-1] for p in feed["postings"]} == {"eng", "mkt"}
+    counts = {c["id"]: c["count"] for c in feed["categories"]}
+    assert counts["engineering"] == 1 and counts["marketing"] == 1
+    assert counts["people"] == 0  # hybrid recruiter is out of scope
+    assert [c["id"] for c in feed["categories"]][-1] == "other"
+
+
+def test_old_database_gets_new_columns(tmp_path):
+    import sqlite3
+
+    path = tmp_path / "old.db"
+    db = sqlite3.connect(path)
+    db.execute(
+        """CREATE TABLE postings (id INTEGER PRIMARY KEY, company_id INTEGER NOT NULL,
+           ats_job_id TEXT NOT NULL, title TEXT NOT NULL, url TEXT NOT NULL, location TEXT,
+           is_remote INTEGER, published_at TEXT, status TEXT NOT NULL,
+           first_seen_at TEXT NOT NULL, last_verified_at TEXT NOT NULL, closed_at TEXT,
+           UNIQUE (company_id, ats_job_id))"""
+    )
+    db.commit()
+    db.close()
+
+    store = Store(path)
+    cid, _ = store.add_company("Acme", "lever", "acme", now=T0)
+    store.sync_board(cid, [posting("a")], T0)
+    assert store.open_postings(work_mode="remote")[0]["category"] == "engineering"

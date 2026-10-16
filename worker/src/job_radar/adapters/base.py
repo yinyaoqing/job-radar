@@ -55,7 +55,9 @@ class Posting:
     title: str
     url: str
     location: str | None = None
-    is_remote: bool | None = None
+    # remote | hybrid | onsite | unknown (classify.WORK_MODES)
+    work_mode: str = "unknown"
+    department: str | None = None
     published_at: datetime | None = None
     description: str | None = None
     raw: dict[str, Any] = field(default_factory=dict, repr=False)

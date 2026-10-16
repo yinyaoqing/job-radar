@@ -7,7 +7,10 @@ from __future__ import annotations
 
 from typing import Any
 
+from ..classify import work_mode_from_text
 from .base import Adapter, AdapterError, Posting, parse_iso
+
+WORKPLACE_TYPES = {"Remote": "remote", "Hybrid": "hybrid", "OnSite": "onsite"}
 
 BOARD_URL = "https://api.ashbyhq.com/posting-api/job-board/{org}"
 GRAPHQL_URL = "https://jobs.ashbyhq.com/api/non-user-graphql?op=ApiJobPosting"
@@ -61,12 +64,18 @@ class AshbyAdapter(Adapter):
             title=job["title"],
             url=f"https://jobs.ashbyhq.com/{org}/{job['id']}",
             location=job.get("locationName"),
+            work_mode=work_mode_from_text(job.get("locationName")),
             published_at=parse_iso(job.get("publishedDate")),
             description=job.get("descriptionHtml"),
             raw=job,
         )
 
     def _from_board(self, org: str, job: dict[str, Any]) -> Posting:
+        work_mode = WORKPLACE_TYPES.get(job.get("workplaceType") or "")
+        if work_mode is None:
+            work_mode = (
+                "remote" if job.get("isRemote") else work_mode_from_text(job.get("location"))
+            )
         return Posting(
             ats=self.name,
             org=org,
@@ -74,7 +83,8 @@ class AshbyAdapter(Adapter):
             title=job["title"],
             url=job["jobUrl"],
             location=job.get("location"),
-            is_remote=job.get("isRemote"),
+            work_mode=work_mode,
+            department=job.get("department") or job.get("team"),
             published_at=parse_iso(job.get("publishedAt")),
             description=job.get("descriptionPlain"),
             raw=job,
