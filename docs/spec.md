@@ -1,6 +1,6 @@
 # Job Radar 求職 Agent：規格文件
 
-2026-10-15
+2026-10-16
 
 ## 摘要
 
@@ -202,14 +202,48 @@ Next.js + shadcn/ui，四個頁面；每天的主要動作都在第一個頁面�
 | 可觀測性 | OpenTelemetry trace 涵蓋每個步驟與 LLM 呼叫；後台顯示每日抓取數、關閉數、各步驟耗時與費用 |
 | 隱私 | CV、證據庫、申請紀錄只存在使用者自己的資料庫；公開 demo 使用假資料；私有 repo 不匯入、不外連 |
 | 抓取規範 | 只用公開 API 與公開頁面；限速、尊重 robots.txt；不繞過登入或驗證的保護 |
-| 部署 | 先在本機與一台小型雲端主機執行；排程用 cron 或 GitHub Actions schedule |
+| 部署 | 先在本機與一台小型雲端主機執行；每日排程用主機 cron，GitHub Actions 只跑 CI（見「部署計畫」） |
 | 開源 | 程式碼以 MIT 公開，個人資料與證據庫內容不進 repo |
 
 ## 里程碑
 
-> 圖：開發時程 · 6 週、2 個里程碑（假設 10/19 開工）（見[雲端規格文件](https://claude.ai/code/artifact/e4f6a916-561d-46bc-b4cc-b8fb92a606e6)）
+**目前進度（10/16）**：Ashby、Greenhouse、Lever 三個 adapter 與 `job-radar list / check` CLI 已完成，7 個離線測試與 4 個 live 測試全數通過，比原定 10/19 開工提早。還沒開始的部分：資料庫、每日管線、其他來源、CI 與部署。
+
+**時程調整**（兩個里程碑日期不變）：
+
+- 第 1 週改做資料庫（`companies`、`postings`、`posting_snapshots`）與每日管線「發現 → 驗證 → 存快照」，加上 Recruitee adapter 與 remoteintech 公司清單匯入。
+- 需要 LLM 抽取的來源（HN Who's Hiring、谁在招人）移到第 2 週，和抽取一起做；104 也放在第 2 週，列為可失效來源。
+- CI 從第 6 週提前到第 1 週；第 6 週只把四個 eval 接成合併門檻。
+
+> 圖：開發與部署時程 · 6 週、2 個里程碑，ATS adapters 已提前完成（截至 10/16）（見[雲端規格文件](https://claude.ai/code/artifact/e4f6a916-561d-46bc-b4cc-b8fb92a606e6)）
+
+| 週 | 日期 | 開發 | 部署 |
+| --- | --- | --- | --- |
+| 0 | 10/15–10/16 | ATS adapters（已完成） | |
+| 1 | 10/19–10/25 | 資料庫與每日管線 | CI 與每晚 live 測試 |
+| 2 | 10/26–11/1 | 抽取與陷阱 eval | 本機每日排程 |
+| 3 | 11/2–11/8 | 資格規則與評分；11/8 開始自用 | 本機每日排程 |
+| 4 | 11/9–11/15 | 每日摘要與 Email | 搬到小型主機 |
+| 5 | 11/16–11/22 | CV 產生與 lint | |
+| 6 | 11/23–11/29 | eval 門檻、README、demo；11/29 公開發布 | 公開 demo 站 |
 
 「開始自用」的條件是地區陷阱 eval 準確率 ≥ 90%；「公開發布」的條件是四個 eval 集都達標，且 README 附上分數與 2 分鐘 demo 影片。
+
+### 部署計畫
+
+每日任務先在本機跑到「開始自用」，第 4 週再搬到一台小型主機；GitHub Actions 只跑 CI，不跑每日任務。
+
+| 階段 | 時間 | 執行位置 | 排程 | 資料庫 | 進入條件 |
+| --- | --- | --- | --- | --- | --- |
+| CI | 第 1 週起 | GitHub Actions（公開 repo） | push / PR 跑 ruff 與離線 pytest；每晚跑 `pytest -m live` | 無 | 無 |
+| 本機自用 | 第 2–3 週 | 作者的 Windows 電腦 | 工作排程器，每天 07:00（台灣時間） | Docker 的 Postgres + pgvector | 每日管線能從頭跑完 |
+| 主機 | 第 4 週起 | 小型雲端主機，Docker Compose 跑 worker、Postgres、web | cron 07:00 跑管線，08:00 寄 Email | 主機上的 Postgres，每日 `pg_dump` 備份 | 「開始自用」達標 |
+| 公開 demo | 第 6 週 | 靜態託管（例如 Vercel），不需登入 | 無 | 假資料 seed，唯讀 | 四個 eval 集達標 |
+
+- **每日任務不放公開 repo 的 Actions**：公開 repo 的執行紀錄任何人都看得到，會洩漏關注公司清單與評分。
+- **機密**：`ANTHROPIC_API_KEY`、`DATABASE_URL`、SMTP 帳密只放在主機的 `.env`；repo 只放 `.env.example`。
+- **私人介面**：看板與 CV 工作區只在主機上跑，不對外公開（透過 VPN 或登入保護存取）；對外只有假資料的 demo 站。
+- **每晚 live 測試失敗**：視為 ATS API 變動的警示，對應風險表第一列。
 
 ## 風險與開放問題
 
@@ -225,5 +259,5 @@ Next.js + shadcn/ui，四個頁面；每天的主要動作都在第一個頁面�
 
 - [ ] 關注公司清單從哪裡開始？（建議：既有的職缺 shortlist + GitHub 公司清單 + HN 每月新公司）
 - [ ] 要不要支援中文 CV（104 職缺）？
-- [ ] 公開 demo 是否需要登入，還是只放假資料的唯讀版？
+- [x] 公開 demo 是否需要登入，還是只放假資料的唯讀版？（已決定 10/16：假資料、唯讀、不需登入）
 - [ ] 日後若開放給別人，證據庫的建立方式（上傳 CV + GitHub 授權）？
