@@ -42,6 +42,9 @@ const REGION_LABELS: Record<string, string> = {
   OCEANIA: "大洋洲",
   AFRICA: "非洲",
   MIDDLE_EAST: "中東",
+  DACH: "德奧瑞",
+  NORDICS: "北歐",
+  BENELUX: "比荷盧",
 };
 
 function placeNames(countries: string[], regions: string[]): string {

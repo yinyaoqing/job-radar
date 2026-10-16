@@ -395,3 +395,22 @@ def test_title_alone_never_says_worldwide():
     from job_radar.eligibility import field_policy
 
     assert field_policy("Remote", "Engineer (Remote, Worldwide)") is None
+
+
+def test_dach_and_nordics_are_regions():
+    from job_radar.eligibility import field_policy
+
+    assert field_policy("Remote", "Sales Director DACH")["regions"] == ["DACH"]
+    assert (
+        assess(work_mode="remote", location_text="Remote - Nordics", extraction=None).label
+        == "blocked"
+    )
+    assert (
+        assess(
+            work_mode="remote",
+            location_text="Remote - DACH",
+            extraction=None,
+            candidate=Candidate(country="AT", utc_offset=1),
+        ).label
+        == "eligible"
+    )

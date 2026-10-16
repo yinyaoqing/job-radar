@@ -14,3 +14,12 @@ npm run build        # 輸出到 out/
 ```
 
 部署：`.github/workflows/web.yml` 在 main 上建置並發布到 GitHub Pages（需要在 repo 設定開啟 Pages，並設 `PAGES_ENABLED=true` 變數）；正式 feed 的網址設在 `FEED_URL` 變數。
+
+用真實資料在本機看（先用 worker 匯出 feed）：
+
+```bash
+cd worker && uv run job-radar export --out ../web/public/feed.json   # public/feed.json 不進版控
+cd ../web
+NEXT_PUBLIC_FEED_URL=/feed.json npm run build   # Windows Git Bash 要加 MSYS_NO_PATHCONV=1，否則 /feed.json 會被改成 C:/Program Files/Git/feed.json
+npx serve out                                    # http://localhost:3000
+```

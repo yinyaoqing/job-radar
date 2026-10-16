@@ -105,6 +105,9 @@ REGIONS: dict[str, set[str]] = {
     "OCEANIA": OCEANIA,
     "AFRICA": AFRICA,
     "MIDDLE_EAST": MIDDLE_EAST,
+    "DACH": {"DE", "AT", "CH"},
+    "NORDICS": {"SE", "NO", "DK", "FI", "IS"},
+    "BENELUX": {"BE", "NL", "LU"},
 }
 
 # Names seen in ATS location fields. Longest first so "United States" wins over "States".
@@ -267,6 +270,10 @@ _REGION_WORDS = {
     "oceania": "OCEANIA",
     "africa": "AFRICA",
     "middle east": "MIDDLE_EAST",
+    "dach": "DACH",
+    "nordics": "NORDICS",
+    "nordic": "NORDICS",
+    "benelux": "BENELUX",
 }
 _WORLDWIDE = re.compile(r"worldwide|anywhere|global(ly)?\b|any (country|location)", re.I)
 # US states and Canadian provinces show up as "Remote - CA"; treat a two-letter

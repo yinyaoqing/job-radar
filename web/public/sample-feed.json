@@ -391,6 +391,23 @@
    "QA",
    "SA",
    "TR"
+  ],
+  "DACH": [
+   "AT",
+   "CH",
+   "DE"
+  ],
+  "NORDICS": [
+   "DK",
+   "FI",
+   "IS",
+   "NO",
+   "SE"
+  ],
+  "BENELUX": [
+   "BE",
+   "LU",
+   "NL"
   ]
  },
  "attribution": [

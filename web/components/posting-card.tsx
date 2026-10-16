@@ -100,7 +100,10 @@ export function PostingCard({
 
       <div className="mt-2 flex flex-wrap gap-1.5">
         {posting.salary && <Badge>{formatSalary(posting.salary)}</Badge>}
-        {(posting.skills ?? []).slice(0, 5).map((skill) => (
+        {(posting.skills ?? [])
+          .filter((skill) => skill.length <= 30)
+          .slice(0, 5)
+          .map((skill) => (
           <Badge key={skill}>{skill}</Badge>
         ))}
         {posting.no_ai_policy && (
