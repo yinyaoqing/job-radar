@@ -22,3 +22,7 @@ node_modules/
 Thumbs.db
 .vscode/
 .idea/
+
+# Local data from the worker CLI
+*.db
+worker/public/

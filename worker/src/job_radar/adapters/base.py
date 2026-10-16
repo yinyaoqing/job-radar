@@ -12,6 +12,8 @@ only used to discover companies.
 
 from __future__ import annotations
 
+import threading
+import time
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
 from datetime import datetime
@@ -19,8 +21,30 @@ from typing import Any
 
 import httpx
 
-USER_AGENT = "job-radar/0.1"
+USER_AGENT = "job-radar/0.1 (+https://github.com/yinyaoqing/job-radar)"
 DEFAULT_TIMEOUT = httpx.Timeout(20.0)
+
+
+class HostThrottle:
+    """httpx request hook: at most one request per ``min_interval`` seconds to each host."""
+
+    def __init__(self, min_interval: float = 1.0) -> None:
+        self._min_interval = min_interval
+        self._next_slot: dict[str, float] = {}
+        self._lock = threading.Lock()
+
+    def __call__(self, request: httpx.Request) -> None:
+        host = request.url.host
+        with self._lock:
+            now = time.monotonic()
+            slot = max(now, self._next_slot.get(host, 0.0))
+            self._next_slot[host] = slot + self._min_interval
+        if slot > now:
+            time.sleep(slot - now)
+
+
+# Shared by every default client, so two adapters never hammer the same host together.
+THROTTLE = HostThrottle()
 
 
 @dataclass(slots=True)
@@ -46,7 +70,10 @@ class Adapter(ABC):
 
     def __init__(self, client: httpx.Client | None = None) -> None:
         self._client = client or httpx.Client(
-            headers={"User-Agent": USER_AGENT}, timeout=DEFAULT_TIMEOUT, follow_redirects=True
+            headers={"User-Agent": USER_AGENT},
+            timeout=DEFAULT_TIMEOUT,
+            follow_redirects=True,
+            event_hooks={"request": [THROTTLE]},
         )
 
     @abstractmethod

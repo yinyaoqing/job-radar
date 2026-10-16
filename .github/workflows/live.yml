@@ -1,0 +1,24 @@
+# Nightly contract check against the real ATS endpoints: a failure means an ATS
+# changed its API (docs/spec.md, 風險). Scheduled runs stop after 60 days without
+# repository activity; re-enable from the Actions tab if that happens.
+name: live
+
+on:
+  schedule:
+    - cron: "0 21 * * *" # 05:00 Taiwan
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  ats-contract:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: worker
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+      - run: uv sync --frozen
+      - run: uv run pytest -m live

@@ -3,7 +3,7 @@ import json
 import httpx
 import pytest
 
-from job_radar.adapters import AshbyAdapter, GreenhouseAdapter, LeverAdapter
+from job_radar.adapters import AshbyAdapter, GreenhouseAdapter, LeverAdapter, RecruiteeAdapter
 
 
 def client(handler) -> httpx.Client:
@@ -99,6 +99,60 @@ def test_lever_parses_epoch_ms_and_locations():
     assert posting.location == "Asia / Taiwan, Taipei"
     assert posting.is_remote is True
     assert posting.published_at.year == 2026
+
+
+# --- Recruitee -------------------------------------------------------------
+
+
+RECRUITEE_OFFER = {
+    "id": 2783543,
+    "slug": "frontend-engineer-2",
+    "title": "Frontend Engineer",
+    "careers_url": "https://acme.recruitee.com/o/frontend-engineer-2",
+    "location": "Remote",
+    "remote": True,
+    "status": "published",
+    "published_at": "2026-10-15 09:31:36 UTC",
+    "description": "<p>Build UI</p>",
+    "requirements": "<p>React</p>",
+}
+
+
+def test_recruitee_list_uses_slug_and_parses_time():
+    def handler(request: httpx.Request) -> httpx.Response:
+        assert request.url.host == "acme.recruitee.com"
+        draft = {**RECRUITEE_OFFER, "slug": "draft", "status": "draft"}
+        return httpx.Response(200, json={"offers": [RECRUITEE_OFFER, draft]})
+
+    [posting] = RecruiteeAdapter(client(handler)).list("acme")
+    assert posting.ats_job_id == "frontend-engineer-2"
+    assert posting.published_at.isoformat() == "2026-10-15T09:31:36+00:00"
+    assert posting.description == "<p>Build UI</p>\n<p>React</p>"
+    assert posting.is_remote is True
+
+
+def test_recruitee_get_and_404():
+    offer = {"offer": RECRUITEE_OFFER}
+    adapter = RecruiteeAdapter(client(lambda r: httpx.Response(200, json=offer)))
+    assert adapter.get("acme", "frontend-engineer-2").title == "Frontend Engineer"
+    assert RecruiteeAdapter(client(lambda r: httpx.Response(404))).get("acme", "x") is None
+
+
+# --- Shared ----------------------------------------------------------------
+
+
+def test_host_throttle_spaces_requests_per_host(monkeypatch):
+    from job_radar.adapters import base
+
+    clock = {"t": 100.0}
+    sleeps: list[float] = []
+    monkeypatch.setattr(base.time, "monotonic", lambda: clock["t"])
+    monkeypatch.setattr(base.time, "sleep", sleeps.append)
+    throttle = base.HostThrottle(1.0)
+    throttle(httpx.Request("GET", "https://a.example/1"))
+    throttle(httpx.Request("GET", "https://a.example/2"))
+    throttle(httpx.Request("GET", "https://b.example/1"))
+    assert sleeps == [1.0]
 
 
 def test_unexpected_status_raises():
