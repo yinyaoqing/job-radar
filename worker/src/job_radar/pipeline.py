@@ -61,8 +61,10 @@ def crawl(
                 if isinstance(result, str):
                     stats.boards_failed += 1
                     stats.errors.append(result)
+                    store.record_board_result(company.id, now(), result)
                     continue
                 stats.boards_ok += 1
+                store.record_board_result(company.id, now(), None)
                 synced = store.sync_board(company.id, result, now())
                 stats.seen += synced.seen
                 stats.new += synced.new

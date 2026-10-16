@@ -6,7 +6,13 @@ Known states as of 2026-10-15.
 
 import pytest
 
-from job_radar.adapters import AshbyAdapter, GreenhouseAdapter, LeverAdapter, RecruiteeAdapter
+from job_radar.adapters import (
+    AshbyAdapter,
+    GreenhouseAdapter,
+    LeverAdapter,
+    RecruiteeAdapter,
+    WorkableAdapter,
+)
 
 pytestmark = pytest.mark.live
 
@@ -31,3 +37,7 @@ def test_lever_board_lists_jobs():
 
 def test_recruitee_board_lists_jobs():
     assert len(RecruiteeAdapter().list("bunq")) > 0
+
+
+def test_workable_board_lists_jobs():
+    assert len(WorkableAdapter().list("seeq")) > 0

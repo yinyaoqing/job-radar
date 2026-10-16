@@ -25,6 +25,7 @@ CATEGORIES: dict[str, str] = {
     "people": "人資與招募",
     "legal": "法務與合規",
     "content": "內容與社群",
+    "healthcare": "醫療照護",
     "other": "其他",
 }
 
@@ -33,15 +34,23 @@ CATEGORIES: dict[str, str] = {
 # "Customer Success Engineer" customer, "IT Recruiter" people.
 _RULES: list[tuple[str, str]] = [
     (
+        "healthcare",
+        r"physician|\bnurse|nursing|\bclinician|clinical (lead|specialist|director)|"
+        r"therapist|counsell?or|psychiatr|psycholog|pharmac|dietitian|\b(md|np|rn|lcsw)\b|"
+        r"medical (director|doctor|assistant)|care coordinator|health coach",
+    ),
+    (
         "sales",
         r"\bsales\b|solutions? (engineer|architect|consultant)|account executive|"
-        r"account manager|business development|\b[bs]dr\b|partnerships?\b|revenue\b",
+        r"account manager|business development|\b[bs]dr\b|partnerships?\b|revenue\b|"
+        r"fundrais|gifts? officer|advancement|origination|go-to-market",
     ),
     (
         "customer",
         r"customer (success|support|service|experience|care)|technical support|"
         r"support (engineer|specialist|agent|representative)|help ?desk|\bcsm\b|"
-        r"implementation (manager|specialist|consultant)|client (manager|partner|success|services)",
+        r"implementation (manager|specialist|consultant)|"
+        r"client (manager|partner|success|services|advoca)|サポート",
     ),
     ("people", r"recruit|talent|\bhr\b|human resources|\bpeople\b"),
     (
@@ -51,18 +60,19 @@ _RULES: list[tuple[str, str]] = [
     ),
     (
         "legal",
-        r"\blegal\b|counsel|lawyer|attorney|compliance|paralegal|privacy|\baml\b|\bkyc\b",
+        r"\blegal\b|\bcounsel\b|lawyer|attorney|compliance|paralegal|privacy|\baml\b|"
+        r"\bkyc\b|regulatory|licensing|\bpolicy\b|government affairs|investigations|fraud",
     ),
     ("design", r"designer|\bdesign\b|\bux\b|\bui\b|user research"),
     (
         "marketing",
         r"marketing|marketer|growth(?! engineer)|\bseo\b|demand gen|\bbrand\b|"
-        r"communications|\bpr\b|social media",
+        r"communications|\bpr\b|public relations|social media",
     ),
     (
         "data",
         r"\bdata\b|analytics|machine learning|\bml\b|scientist|statistic|"
-        r"business intelligence|\bbi\b",
+        r"business intelligence|\bbi\b|research(er)?\b|quantitative",
     ),
     (
         "product",
@@ -77,13 +87,16 @@ _RULES: list[tuple[str, str]] = [
         "engineering",
         r"engineer|developer|devops|\bsre\b|programmer|architect|security|\bqa\b|"
         r"test automation|\bit\b|sysadmin|infrastructure|software|front-?end|back-?end|"
-        r"full[- ]?stack|\bmobile\b|\bios\b|android|technician",
+        r"full[- ]?stack|\bmobile\b|\bios\b|android|technician|\bcto\b|"
+        r"chief technology|\btechnology\b|エンジニア|アーキテクト",
     ),
     (
         "operations",
         r"operations|\bops\b|project (manager|lead)|program manager|chief of staff|"
         r"executive assistant|\boffice\b|administrat|logistics|supply chain|procurement|"
-        r"sourcing|fulfil?lment|strategy",
+        r"sourcing|fulfil?lment|strategy|quality (specialist|lead|manager|assurance)|"
+        r"delivery (manager|lead|director)|program director|general manager|\brisk\b|"
+        r"certification|enablement",
     ),
     ("data", r"\banalyst\b"),
 ]
@@ -91,8 +104,9 @@ _COMPILED = [(cat, re.compile(rx, re.I)) for cat, rx in _RULES]
 
 # "Don't see a role? Apply here": a talent pool, not an opening; kept out of the feed.
 _GENERAL_APPLICATION = re.compile(
-    r"don.?t see|general application|open application|spontaneous application|"
-    r"talent (pool|community|network)|future (opportunities|openings)",
+    r"don.?t see|general (application|interest)|open application|spontaneous application|"
+    r"talent (pool|community|network)|future (opportunities|openings)|"
+    r"\bfuture\b.*\b(assignments|roles|positions)\b",
     re.I,
 )
 

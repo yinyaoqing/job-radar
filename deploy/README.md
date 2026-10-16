@@ -18,6 +18,7 @@ Actions as part of a serverless application.
 git clone https://github.com/yinyaoqing/job-radar /opt/job-radar
 docker build -t job-radar /opt/job-radar/worker
 docker run --rm -v jr-data:/data job-radar companies import-remoteintech --region worldwide --region asia-pacific
+docker run --rm -v jr-data:/data job-radar companies import-hn --months 2
 docker run --rm -v jr-data:/data job-radar companies add ashby <org>   # boards you know
 crontab -e   # add the line at the top of deploy/daily.sh
 ```

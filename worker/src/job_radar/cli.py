@@ -5,6 +5,7 @@ job-radar check <ats> <org> <job_id> # is this posting still open?
 
 job-radar companies add <ats> <org> [--name NAME]
 job-radar companies import-remoteintech [--probe] [--region worldwide ...]
+job-radar companies import-hn [--months N]
 job-radar companies list
 job-radar crawl                      # fetch every watched board, open/close postings
 job-radar postings [--category C] [--all-modes]  # open postings in the database
@@ -57,7 +58,10 @@ def main(argv: list[str] | None = None) -> int:
         action="append",
         help="only these regions (repeatable), e.g. worldwide, asia-pacific",
     )
-    comp.add_parser("list", help="show watched companies")
+    p_hn = comp.add_parser("import-hn", help="import boards linked from HN 'Who is hiring?'")
+    p_hn.add_argument("--months", type=int, default=1, help="how many monthly threads")
+    comp.add_parser("list", help="show watched companies with open/remote counts")
+    comp.add_parser("reset-failures", help="crawl boards skipped after repeated failures again")
 
     sub.add_parser("crawl", help="fetch every watched board and update postings")
 
@@ -136,8 +140,29 @@ def _companies_command(args: argparse.Namespace, store) -> int:
         print("added" if inserted else "already watched")
         return 0
     if args.action == "list":
-        for c in store.watched_companies():
-            print(f"{c.ats}\t{c.ats_org}\t{c.name}")
+        rows = store.company_stats()
+        for r in rows:
+            state = f"failing x{r['fail_count']}" if r["fail_count"] else "ok"
+            print(
+                f"{r['ats']}\t{r['ats_org']}\t{r['name']}\t{r['source'] or '-'}\t"
+                f"open {r['open_postings']}\tremote {r['remote_postings']}\t{state}"
+            )
+        print(f"{len(rows)} companies", file=sys.stderr)
+        return 0
+    if args.action == "reset-failures":
+        print(f"{store.reset_failures()} boards back in the crawl")
+        return 0
+    if args.action == "import-hn":
+        from .discovery import HN_SOURCE, harvest_hn
+
+        leads = harvest_hn(months=args.months)
+        added = 0
+        for lead in leads:
+            _, inserted = store.add_company(
+                lead.company, lead.ats, lead.org, now=_now(), source=HN_SOURCE
+            )
+            added += inserted
+        print(f"{len(leads)} boards linked, {added} newly watched")
         return 0
 
     from .discovery import SOURCE, detect_ats, fetch_remoteintech, probe

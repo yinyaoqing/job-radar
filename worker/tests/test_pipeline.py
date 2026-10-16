@@ -123,7 +123,7 @@ def test_crawl_isolates_failing_board_and_keeps_its_postings_open():
         ("https://jobs.ashbyhq.com/Acme", ("ashby", "Acme")),
         ("https://boards.greenhouse.io/acme/jobs/123", ("greenhouse", "acme")),
         ("https://job-boards.greenhouse.io/acme", ("greenhouse", "acme")),
-        ("https://boards.greenhouse.io/embed/job_board?for=acme", None),
+        ("https://boards.greenhouse.io/embed/job_board?for=acme", ("greenhouse", "acme")),
         ("https://jobs.lever.co/acme?team=eng", ("lever", "acme")),
         ("https://acme.recruitee.com/", ("recruitee", "acme")),
         ("https://acme.com/careers", None),
@@ -179,6 +179,7 @@ def test_probe_returns_first_board_that_exists():
         "lever": FakeAdapter({"acme": []}),
         "ashby": Missing({}),
         "recruitee": Missing({}),
+        "workable": Missing({}),
     }
     assert probe("acme", adapters) == ("lever", "acme")
     assert probe("nobody", {k: Missing({}) for k in adapters}) is None

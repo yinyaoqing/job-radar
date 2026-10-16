@@ -32,6 +32,9 @@ CREATE TABLE IF NOT EXISTS companies (
     remote_policy TEXT,
     technologies  TEXT NOT NULL DEFAULT '[]',
     added_at      TEXT NOT NULL,
+    fail_count    INTEGER NOT NULL DEFAULT 0,
+    last_error    TEXT,
+    last_ok_at    TEXT,
     UNIQUE (ats, ats_org)
 );
 CREATE TABLE IF NOT EXISTS postings (
@@ -74,12 +77,19 @@ CREATE TABLE IF NOT EXISTS runs (
 
 # Columns added after the first schema; older databases get them on open.
 ADDED_COLUMNS = {
+    "companies": {
+        "fail_count": "INTEGER NOT NULL DEFAULT 0",
+        "last_error": "TEXT",
+        "last_ok_at": "TEXT",
+    },
     "postings": {
         "work_mode": "TEXT NOT NULL DEFAULT 'unknown'",
         "department": "TEXT",
         "category": "TEXT NOT NULL DEFAULT 'other'",
     },
 }
+
+MAX_FAILURES = 3
 
 COMPANY_EXTRA_COLUMNS = {"watch", "source", "website", "region", "remote_policy", "technologies"}
 
@@ -147,11 +157,44 @@ class Store:
         self.db.commit()
         return cur.lastrowid, True
 
-    def watched_companies(self) -> list[Company]:
+    def watched_companies(self, max_failures: int = MAX_FAILURES) -> list[Company]:
+        """Watched boards, minus those that failed ``max_failures`` crawls in a row
+        (moved ATS, renamed board). ``reset_failures`` puts them back."""
         rows = self.db.execute(
-            "SELECT id, name, ats, ats_org FROM companies WHERE watch = 1 ORDER BY ats, ats_org"
+            """SELECT id, name, ats, ats_org FROM companies
+               WHERE watch = 1 AND fail_count < ? ORDER BY ats, ats_org""",
+            (max_failures,),
         )
         return [Company(**dict(r)) for r in rows]
+
+    def record_board_result(self, company_id: int, now: datetime, error: str | None) -> None:
+        if error is None:
+            self.db.execute(
+                "UPDATE companies SET fail_count = 0, last_error = NULL, last_ok_at = ? "
+                "WHERE id = ?",
+                (now.isoformat(), company_id),
+            )
+        else:
+            self.db.execute(
+                "UPDATE companies SET fail_count = fail_count + 1, last_error = ? WHERE id = ?",
+                (error[:500], company_id),
+            )
+        self.db.commit()
+
+    def reset_failures(self) -> int:
+        cur = self.db.execute("UPDATE companies SET fail_count = 0 WHERE fail_count > 0")
+        self.db.commit()
+        return cur.rowcount
+
+    def company_stats(self) -> list[sqlite3.Row]:
+        return self.db.execute(
+            """SELECT c.ats, c.ats_org, c.name, c.source, c.fail_count, c.last_error,
+                      (SELECT count(*) FROM postings p
+                       WHERE p.company_id = c.id AND p.status = 'open') AS open_postings,
+                      (SELECT count(*) FROM postings p WHERE p.company_id = c.id
+                       AND p.status = 'open' AND p.work_mode = 'remote') AS remote_postings
+               FROM companies c WHERE c.watch = 1 ORDER BY c.ats, c.ats_org"""
+        ).fetchall()
 
     # --- postings ----------------------------------------------------------
 
