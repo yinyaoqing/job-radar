@@ -63,6 +63,19 @@ CREATE TABLE IF NOT EXISTS posting_snapshots (
     raw_json     TEXT NOT NULL
 );
 CREATE INDEX IF NOT EXISTS snapshots_by_posting ON posting_snapshots (posting_id, id);
+CREATE TABLE IF NOT EXISTS extractions (
+    id             INTEGER PRIMARY KEY,
+    snapshot_id    INTEGER NOT NULL REFERENCES posting_snapshots(id),
+    model          TEXT NOT NULL,
+    schema_version INTEGER NOT NULL,
+    payload        TEXT,
+    error          TEXT,
+    input_tokens   INTEGER NOT NULL DEFAULT 0,
+    output_tokens  INTEGER NOT NULL DEFAULT 0,
+    cost_usd       REAL NOT NULL DEFAULT 0,
+    created_at     TEXT NOT NULL,
+    UNIQUE (snapshot_id, schema_version)
+);
 CREATE TABLE IF NOT EXISTS runs (
     id          INTEGER PRIMARY KEY,
     started_at  TEXT NOT NULL,
@@ -277,6 +290,73 @@ class Store:
             sql += " AND p.work_mode = ?"
             params = (work_mode,)
         return self.db.execute(sql + " ORDER BY p.first_seen_at DESC, p.id DESC", params).fetchall()
+
+    # --- extractions --------------------------------------------------------
+
+    def pending_extractions(self, schema_version: int, limit: int) -> list[sqlite3.Row]:
+        """Latest snapshot of each open remote posting with no extraction at this version,
+        newest postings first. A failed attempt also counts, so a refusal is not retried
+        every day; ``retry_failed_extractions`` clears them."""
+        return self.db.execute(
+            """SELECT s.id AS snapshot_id, p.title, p.location, p.department, s.jd_text
+               FROM postings p
+               JOIN posting_snapshots s ON s.id = (
+                   SELECT max(id) FROM posting_snapshots WHERE posting_id = p.id)
+               WHERE p.status = 'open' AND p.work_mode = 'remote'
+                 AND NOT EXISTS (SELECT 1 FROM extractions e
+                                 WHERE e.snapshot_id = s.id AND e.schema_version = ?)
+               ORDER BY p.first_seen_at DESC, p.id DESC
+               LIMIT ?""",
+            (schema_version, limit),
+        ).fetchall()
+
+    def save_extraction(
+        self,
+        snapshot_id: int,
+        *,
+        model: str,
+        schema_version: int,
+        now: datetime,
+        payload: dict[str, Any] | None = None,
+        error: str | None = None,
+        input_tokens: int = 0,
+        output_tokens: int = 0,
+        cost_usd: float = 0.0,
+    ) -> None:
+        self.db.execute(
+            """INSERT OR REPLACE INTO extractions (snapshot_id, model, schema_version, payload,
+                   error, input_tokens, output_tokens, cost_usd, created_at)
+               VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+            (
+                snapshot_id,
+                model,
+                schema_version,
+                None if payload is None else json.dumps(payload, ensure_ascii=False),
+                error,
+                input_tokens,
+                output_tokens,
+                cost_usd,
+                now.isoformat(),
+            ),
+        )
+        self.db.commit()
+
+    def retry_failed_extractions(self) -> int:
+        cur = self.db.execute("DELETE FROM extractions WHERE payload IS NULL")
+        self.db.commit()
+        return cur.rowcount
+
+    def latest_extraction(self, posting_id: int, schema_version: int) -> dict[str, Any] | None:
+        """The extraction of the newest snapshot that has one (an edited JD keeps showing the
+        previous extraction until the new one lands)."""
+        row = self.db.execute(
+            """SELECT e.payload FROM extractions e
+               JOIN posting_snapshots s ON s.id = e.snapshot_id
+               WHERE s.posting_id = ? AND e.schema_version = ? AND e.payload IS NOT NULL
+               ORDER BY s.id DESC LIMIT 1""",
+            (posting_id, schema_version),
+        ).fetchone()
+        return None if row is None else json.loads(row["payload"])
 
     # --- runs --------------------------------------------------------------
 

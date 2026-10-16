@@ -1,0 +1,321 @@
+# Region trap set (docs/spec.md, 評估). Candidate: Taiwan, UTC+8, online 08:00-23:00.
+# Written from patterns seen in remote job posts; no company names, no private notes.
+#
+# Each case: the ATS location field, the JD sentence(s), the location policy a correct
+# extraction would produce, and the expected verdict. The rule eval feeds `policy` to the
+# eligibility rules; the live eval extracts `text` with the LLM and compares the verdict.
+#
+# policy shorthand: type, countries, regions, tz: [from, to], overlap: [hours, reference_utc]
+
+- id: worldwide-explicit
+  trap: worldwide
+  location: Remote
+  text: This role is fully remote and open to candidates anywhere in the world.
+  policy: {type: worldwide}
+  expected: eligible
+
+- id: worldwide-except-sanctions
+  trap: worldwide
+  location: Remote
+  text: We can hire anywhere except in countries under US sanctions.
+  policy: {type: worldwide}
+  expected: eligible
+
+- id: worldwide-contractor
+  trap: worldwide
+  location: Remote
+  text: We hire globally as independent contractors through an employer of record.
+  policy: {type: worldwide}
+  expected: eligible
+
+- id: worldwide-field
+  trap: worldwide
+  location: Worldwide
+  text: Work from wherever you are most productive.
+  policy: {type: worldwide}
+  expected: eligible
+
+- id: remote-but-us-residents
+  trap: single_country
+  location: Remote
+  text: This position is open to candidates residing in the United States only.
+  policy: {type: country_list, countries: [US]}
+  expected: blocked
+
+- id: us-work-authorization
+  trap: single_country
+  location: Remote
+  text: Candidates must be authorized to work in the US without visa sponsorship.
+  policy: {type: country_list, countries: [US]}
+  expected: blocked
+
+- id: us-state-in-field
+  trap: single_country
+  location: Remote - CA
+  text: This is a remote role on our payments team.
+  policy: {type: unknown}
+  expected: blocked
+
+- id: us-or-canada
+  trap: country_list
+  location: Remote
+  text: You must be based in the US or Canada.
+  policy: {type: country_list, countries: [US, CA]}
+  expected: blocked
+
+- id: country-list-includes-taiwan
+  trap: country_list
+  location: Remote
+  text: We currently hire in Taiwan, Japan, Singapore and Australia.
+  policy: {type: country_list, countries: [TW, JP, SG, AU]}
+  expected: eligible
+
+- id: entity-countries-without-taiwan
+  trap: country_list
+  location: Remote
+  text: We have entities in the US, UK, Germany, Singapore and Japan and can only hire there.
+  policy: {type: country_list, countries: [US, GB, DE, SG, JP]}
+  expected: blocked
+
+- id: eu-only
+  trap: region
+  location: Remote (Europe)
+  text: Applicants must be located in the European Union.
+  policy: {type: region_list, regions: [EU]}
+  expected: blocked
+
+- id: emea
+  trap: region
+  location: Remote - EMEA
+  text: This role is open to candidates in EMEA.
+  policy: {type: region_list, regions: [EMEA]}
+  expected: blocked
+
+- id: uk-only
+  trap: single_country
+  location: London or Remote (UK)
+  text: The role can be done remotely from anywhere in the UK.
+  policy: {type: country_list, countries: [GB]}
+  expected: blocked
+
+- id: latam
+  trap: region
+  location: LATAM
+  text: We are hiring engineers across Latin America.
+  policy: {type: region_list, regions: [LATAM]}
+  expected: blocked
+
+- id: north-america
+  trap: region
+  location: Remote
+  text: Open to candidates located in North America.
+  policy: {type: region_list, regions: [NORTH_AMERICA]}
+  expected: blocked
+
+- id: apac
+  trap: region
+  location: Remote - APAC
+  text: This role is open to candidates across APAC.
+  policy: {type: region_list, regions: [APAC]}
+  expected: eligible
+
+- id: asia
+  trap: region
+  location: Remote
+  text: Open to candidates based in Asia.
+  policy: {type: region_list, regions: [ASIA]}
+  expected: eligible
+
+- id: taiwan-explicit
+  trap: single_country
+  location: Remote (Taiwan)
+  text: You will work remotely from Taiwan.
+  policy: {type: country_list, countries: [TW]}
+  expected: eligible
+
+- id: tz-window-europe
+  trap: timezone_window
+  location: Remote
+  text: Candidates must be located between UTC-4 and UTC+4.
+  policy: {type: timezone_window, tz: [-4, 4]}
+  expected: blocked
+
+- id: tz-window-americas
+  trap: timezone_window
+  location: Remote
+  text: We hire in time zones from UTC-8 to UTC-3.
+  policy: {type: timezone_window, tz: [-8, -3]}
+  expected: blocked
+
+- id: tz-window-asia
+  trap: timezone_window
+  location: Remote
+  text: You should live in a time zone between UTC+5 and UTC+10.
+  policy: {type: timezone_window, tz: [5, 10]}
+  expected: eligible
+
+- id: tz-within-3h-of-utc8
+  trap: timezone_window
+  location: Remote
+  text: You must be within 3 hours of UTC+8.
+  policy: {type: timezone_window, tz: [5, 11]}
+  expected: eligible
+
+- id: apac-with-tz
+  trap: timezone_window
+  location: Remote - APAC
+  text: Open to APAC candidates in UTC+7 to UTC+10.
+  policy: {type: region_list, regions: [APAC], tz: [7, 10]}
+  expected: eligible
+
+- id: overlap-pacific-4h
+  trap: overlap
+  location: Remote
+  text: You need at least 4 hours of overlap with Pacific Time (UTC-8) working hours.
+  policy: {type: worldwide, overlap: [4, -8]}
+  expected: blocked
+
+- id: overlap-eastern-4h
+  trap: overlap
+  location: Remote
+  text: Expect 4 hours of daily overlap with US Eastern Time (UTC-5).
+  policy: {type: worldwide, overlap: [4, -5]}
+  expected: blocked
+
+- id: overlap-cet-2h
+  trap: overlap
+  location: Remote
+  text: We ask for 2 hours of overlap with CET (UTC+1) each day.
+  policy: {type: worldwide, overlap: [2, 1]}
+  expected: eligible
+
+- id: overlap-singapore-4h
+  trap: overlap
+  location: Remote
+  text: Please plan for 4 hours of overlap with our Singapore office (UTC+8).
+  policy: {type: worldwide, overlap: [4, 8]}
+  expected: eligible
+
+- id: overlap-uk-3h
+  trap: overlap
+  location: Remote
+  text: You will need 3 hours of overlap with UK working hours (UTC+0).
+  policy: {type: worldwide, overlap: [3, 0]}
+  expected: eligible
+
+- id: title-worldwide-field-us
+  trap: conflict
+  title: Senior Engineer (Remote, Worldwide)
+  location: United States
+  text: We are a fully distributed team and hire worldwide.
+  policy: {type: worldwide}
+  expected: unclear
+
+- id: field-apac-jd-singapore
+  trap: conflict
+  location: Remote - APAC
+  text: Candidates must be based in Singapore.
+  policy: {type: country_list, countries: [SG]}
+  expected: unclear
+
+- id: field-anywhere-jd-eu-payroll
+  trap: narrowed
+  location: Anywhere
+  text: Because of payroll, we can only hire in the EU.
+  policy: {type: region_list, regions: [EU]}
+  expected: blocked
+
+- id: field-worldwide-jd-tz
+  trap: narrowed
+  location: Worldwide
+  text: Anywhere is fine, but you must work within UTC-5 to UTC+3.
+  policy: {type: worldwide, tz: [-5, 3]}
+  expected: blocked
+
+- id: vague-remote
+  trap: vague
+  location: Remote
+  text: This is a remote position. Join our team!
+  policy: {type: unknown}
+  expected: unclear
+
+- id: vague-remote-first
+  trap: vague
+  location: ""
+  text: We are a remote-first company.
+  policy: {type: unknown}
+  expected: unclear
+
+- id: hybrid
+  trap: not_remote
+  work_mode: hybrid
+  location: Berlin (Hybrid)
+  text: Three days a week in our Berlin office.
+  policy: {type: onsite_hybrid, countries: [DE]}
+  expected: blocked
+
+- id: onsite-taipei
+  trap: not_remote
+  work_mode: onsite
+  location: Taipei
+  text: This role is based in our Taipei office.
+  policy: {type: onsite_hybrid, countries: [TW]}
+  expected: blocked
+
+- id: clearance
+  trap: hard_requirement
+  location: Remote
+  text: Active TS/SCI clearance required. Remote within the United States.
+  policy: {type: country_list, countries: [US]}
+  hard_requirements: [{type: clearance, value: TS/SCI}]
+  expected: blocked
+
+- id: citizenship
+  trap: hard_requirement
+  location: Remote
+  text: Must be a US citizen.
+  policy: {type: country_list, countries: [US]}
+  hard_requirements: [{type: citizenship, value: US citizen}]
+  expected: blocked
+
+- id: field-remote-united-states
+  trap: single_country
+  location: Remote, United States
+  text: Remote role on our platform team.
+  policy: {type: unknown}
+  expected: blocked
+
+- id: field-americas-and-asia
+  trap: region
+  location: Remote - Americas; Remote - Asia
+  text: Work remotely with a small team.
+  policy: {type: unknown}
+  expected: eligible
+
+- id: canada
+  trap: single_country
+  location: Canada
+  text: Remote within Canada.
+  policy: {type: country_list, countries: [CA]}
+  expected: blocked
+
+- id: eea-field
+  trap: region
+  location: Remote (EEA)
+  text: Remote position.
+  policy: {type: unknown}
+  expected: blocked
+
+- id: india
+  trap: single_country
+  location: Remote - India
+  text: You will join our Bangalore-led team, working remotely from India.
+  policy: {type: country_list, countries: [IN]}
+  expected: blocked
+
+- id: japan-or-taiwan-field
+  trap: country_list
+  location: Remote, Japan or Taiwan
+  text: Remote role.
+  policy: {type: unknown}
+  expected: eligible

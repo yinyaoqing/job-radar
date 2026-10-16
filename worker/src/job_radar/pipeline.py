@@ -74,3 +74,99 @@ def crawl(
     summary["errors"] = stats.errors[:50]
     store.finish_run(run_id, now(), summary)
     return stats
+
+
+@dataclass(slots=True)
+class ExtractStats:
+    attempted: int = 0
+    extracted: int = 0
+    failed: int = 0
+    skipped_empty: int = 0
+    cost_usd: float = 0.0
+    stopped_at_budget: bool = False
+    errors: list[str] = field(default_factory=list)
+
+
+def extract_pending(
+    store: Store,
+    llm,
+    *,
+    model: str,
+    limit: int = 200,
+    max_cost_usd: float = 1.0,
+    workers: int = 4,
+    now: Callable[[], datetime] = lambda: datetime.now(UTC),
+) -> ExtractStats:
+    """Extract the newest unextracted remote postings until ``limit`` or the cost budget.
+
+    Calls run ``workers`` at a time; the budget is checked between batches, so one batch
+    can overshoot it by at most ``workers`` calls.
+    """
+    from .extract import SCHEMA_VERSION, ExtractionFailed, PostingInput, check_quotes
+    from .textutil import html_to_text
+
+    stats = ExtractStats()
+    run_id = store.start_run("extract", now())
+    rows = store.pending_extractions(SCHEMA_VERSION, limit)
+    inputs = []
+    for row in rows:
+        text = html_to_text(row["jd_text"])
+        if not text:
+            stats.skipped_empty += 1
+            continue
+        inputs.append(
+            (
+                row["snapshot_id"],
+                PostingInput(row["title"], row["location"], row["department"], text),
+            )
+        )
+
+    def call(item):
+        """(snapshot_id, posting, extraction, usage, error, permanent)."""
+        snapshot_id, posting = item
+        try:
+            extraction, usage = llm(posting)
+        except ExtractionFailed as exc:
+            return snapshot_id, posting, None, None, str(exc), True
+        except Exception as exc:  # API or network error: transient, retry next run
+            return snapshot_id, posting, None, None, f"{type(exc).__name__}: {exc}", False
+        return snapshot_id, posting, extraction, usage, None, False
+
+    with ThreadPoolExecutor(max_workers=max(1, workers)) as pool:
+        for start in range(0, len(inputs), workers):
+            if stats.cost_usd >= max_cost_usd:
+                stats.stopped_at_budget = True
+                break
+            for snapshot_id, posting, extraction, usage, error, permanent in pool.map(
+                call, inputs[start : start + workers]
+            ):
+                stats.attempted += 1
+                if error is not None:
+                    stats.failed += 1
+                    stats.errors.append(f"{posting.title}: {error}")
+                    if permanent:
+                        store.save_extraction(
+                            snapshot_id,
+                            model=model,
+                            schema_version=SCHEMA_VERSION,
+                            now=now(),
+                            error=error,
+                        )
+                    continue
+                cost = usage.cost_usd(model)
+                stats.cost_usd += cost
+                stats.extracted += 1
+                store.save_extraction(
+                    snapshot_id,
+                    model=model,
+                    schema_version=SCHEMA_VERSION,
+                    now=now(),
+                    payload=check_quotes(extraction, posting),
+                    input_tokens=usage.input_tokens,
+                    output_tokens=usage.output_tokens,
+                    cost_usd=cost,
+                )
+    summary = asdict(stats)
+    summary["errors"] = stats.errors[:50]
+    store.finish_run(run_id, now(), summary)
+    return stats

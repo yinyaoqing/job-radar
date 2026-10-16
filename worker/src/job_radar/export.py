@@ -1,8 +1,14 @@
 """Public JSON feed for the static site: open, fully remote postings in every domain.
 
-Only listing facts and a link back to the ATS go out. The JD body stays out: it is the
-employer's text, and the apply page is the place to read it. ``categories`` lists every
-domain with its count, in display order, so the site can build its filter from the feed.
+Only listing facts and a link back to the ATS go out. The JD body and the extraction
+quotes stay out: they are the employer's text, and the apply page is the place to read
+it. ``categories`` lists every domain with its count, in display order, so the site can
+build its filter from the feed.
+
+Eligibility depends on where the visitor lives, so the feed carries what the site needs
+to judge it in the browser (web/lib/eligibility.ts mirrors eligibility.judge_policy):
+``location_policy`` from the JD (only when its quotes were found in the text) and
+``field_policy`` parsed from the ATS location field.
 """
 
 from __future__ import annotations
@@ -14,17 +20,58 @@ from pathlib import Path
 from typing import Any
 
 from .classify import CATEGORIES, is_general_application
+from .eligibility import policy_from_location_text
+from .extract import SCHEMA_VERSION
 from .store import Store
 
-FEED_VERSION = 2
+FEED_VERSION = 3
 ATTRIBUTION = [
     {
         "name": "remoteintech/remote-jobs",
         "url": "https://github.com/remoteintech/remote-jobs",
         "license": "ISC",
         "used_for": "company discovery",
-    }
+    },
+    {
+        "name": "Hacker News: Ask HN: Who is hiring?",
+        "url": "https://news.ycombinator.com/submitted?id=whoishiring",
+        "used_for": "company discovery",
+    },
 ]
+POLICY_KEYS = (
+    "type",
+    "countries",
+    "regions",
+    "timezone_window_utc",
+    "required_overlap_hours",
+    "overlap_reference_utc",
+)
+
+
+def _from_extraction(extraction: dict[str, Any] | None) -> dict[str, Any]:
+    if not extraction:
+        return {"extracted": False}
+    checks = extraction.get("checks") or {}
+    policy = extraction.get("location_policy") or {}
+    verified = bool(checks.get("location_verified")) and policy.get("type") != "unknown"
+    blocks = [
+        {"type": r["type"], "value": r["value"]}
+        for r in extraction.get("hard_requirements") or []
+        if r.get("type") in ("clearance", "citizenship")
+    ]
+    salary = extraction.get("salary")
+    if salary and salary.get("min") is None and salary.get("max") is None:
+        salary = None
+    return {
+        "extracted": True,
+        "location_policy": {k: policy.get(k) for k in POLICY_KEYS} if verified else None,
+        "hard_blocks": blocks,
+        "seniority": extraction.get("seniority"),
+        "employment": extraction.get("employment"),
+        "salary": salary,
+        "skills": [s["skill"] for s in extraction.get("must_have") or []][:12],
+        "no_ai_policy": bool((extraction.get("application_form") or {}).get("no_ai_policy")),
+    }
 
 
 def build_feed(store: Store, now: datetime) -> dict[str, Any]:
@@ -39,11 +86,13 @@ def build_feed(store: Store, now: datetime) -> dict[str, Any]:
             "department": r["department"],
             "location": r["location"],
             "work_mode": r["work_mode"],
+            "field_policy": policy_from_location_text(r["location"]),
             "url": r["url"],
             "ats": r["ats"],
             "published_at": r["published_at"],
             "first_seen_at": r["first_seen_at"],
             "last_verified_at": r["last_verified_at"],
+            **_from_extraction(store.latest_extraction(r["id"], SCHEMA_VERSION)),
         }
         for r in store.open_postings(work_mode="remote")
         if not is_general_application(r["title"])

@@ -139,20 +139,23 @@ GitHub 上的來源主要用來「發現公司」與「收華語職缺」，從�
 ```json
 {
   "title": "string",
-  "seniority": "junior | mid | senior | staff | unknown",
+  "seniority": "intern | junior | mid | senior | staff | principal | unknown",
   "employment": "full_time | contract | part_time | unknown",
   "location_policy": {
     "type": "worldwide | region_list | country_list | timezone_window | onsite_hybrid | unknown",
     "countries": ["ISO-3166 alpha-2"],
-    "timezone_window_utc": {"from": -4, "to": 4},
-    "required_overlap_hours": 0,
+    "regions": ["EU | EEA | EUROPE | UK | EMEA | NORTH_AMERICA | LATAM | AMERICAS | APAC | ASIA | OCEANIA | AFRICA | MIDDLE_EAST"],
+    "timezone_window_utc": {"from_utc": -4, "to_utc": 4},
+    "required_overlap_hours": 4,
+    "overlap_reference_utc": -5,
+    "work_authorization_required": false,
     "quotes": ["JD 原文引文"]
   },
   "must_have": [{"skill": "string", "quote": "string"}],
   "nice_to_have": [{"skill": "string", "quote": "string"}],
-  "hard_requirements": [{"type": "degree | years | language | clearance | other", "value": "string", "quote": "string"}],
-  "salary": {"min": 0, "max": 0, "currency": "USD", "period": "year"},
-  "application_form": {"no_ai_policy": false, "required_links": ["github", "linkedin", "code_sample"], "questions": ["string"]}
+  "hard_requirements": [{"type": "degree | years | language | clearance | citizenship | other", "value": "string", "quote": "string"}],
+  "salary": {"min": 0, "max": 0, "currency": "USD", "period": "year | month | hour | unknown"},
+  "application_form": {"no_ai_policy": false, "no_ai_quote": "string", "required_links": ["github | linkedin | portfolio | code_sample | other"], "questions": ["string"]}
 }
 ```
 
@@ -255,6 +258,7 @@ Next.js + shadcn/ui，四個頁面；每天的主要動作都在第一個頁面�
 - 第 1 週剩下的時間改做公司清單擴充：remoteintech 886 家只有 17 家的徵才網址直接指向支援的 ATS，其中 5 家已失效；以 slug 探測 asia-pacific 23 家只命中 1 家。下一步加 Workable adapter，並從 HN 留言裡的 ATS 連結收集公司。
 - 範圍改為全遠端、不限職能：已實作全遠端判斷與 12 個領域分類。以 51 筆真實全遠端職缺調整規則後全部有分類；公司變多後要持續補規則，第 2 週的 LLM 抽取可以接手規則判斷不了的職缺。
 - 公司清單擴充（10/16 完成，提前於第 1 週）：新增 Workable adapter 與 HN「Who is hiring」匯入（`grnh.se` 短網址會還原成 Greenhouse 看板）；連續 3 次抓失敗的看板自動停抓。看板 19 → 101 個、開放職缺 77 → 3,302 筆、全遠端 51 → 781 筆；新增「醫療照護」領域後，分不到領域的只剩 7 筆（0.9%）。
+- LLM 抽取與資格判斷（10/16 完成程式，提前於第 2–3 週）：Claude Haiku 5.5 抽取全遠端職缺，引文對不上原文就丟棄或標為未驗證；資格規則支援國家與地區清單、時區範圍、指定時段重疊、安全許可與國籍。地區陷阱集 44 筆，規則層準確率 100%；含 LLM 的完整評估還沒跑，缺 API key。只看 ATS 地點欄位時，806 筆全遠端只有 23 筆確定台灣可申請、275 筆沒寫地區，需要抽取才能判斷。
 
 > 圖：開發與部署時程 · 6 週、2 個里程碑，ATS adapters 已提前完成（截至 10/16）（見[雲端規格文件](https://claude.ai/code/artifact/e4f6a916-561d-46bc-b4cc-b8fb92a606e6)）
 

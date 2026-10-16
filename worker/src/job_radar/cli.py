@@ -8,10 +8,14 @@ job-radar companies import-remoteintech [--probe] [--region worldwide ...]
 job-radar companies import-hn [--months N]
 job-radar companies list
 job-radar crawl                      # fetch every watched board, open/close postings
-job-radar postings [--category C] [--all-modes]  # open postings in the database
+job-radar extract [--limit N] [--max-cost USD]  # LLM extraction of new remote postings
+job-radar postings [--category C] [--eligible] [--all-modes]  # open postings in the database
+job-radar eval regions [--live]      # region trap eval (rules offline; --live calls the LLM)
 job-radar export --out feed.json     # public JSON feed (fully remote, all domains)
 
 The database defaults to ``job-radar.db``; set ``--db`` or ``JOB_RADAR_DB``.
+Eligibility is judged for ``JOB_RADAR_COUNTRY`` (default TW) at ``JOB_RADAR_UTC_OFFSET``
+(default 8). LLM calls need Anthropic credentials (``ANTHROPIC_API_KEY``).
 """
 
 from __future__ import annotations
@@ -70,6 +74,23 @@ def main(argv: list[str] | None = None) -> int:
     p_postings.add_argument(
         "--all-modes", action="store_true", help="include hybrid and onsite postings"
     )
+    p_postings.add_argument(
+        "--eligible", action="store_true", help="only postings you can apply to (see below)"
+    )
+
+    p_extract = sub.add_parser("extract", help="LLM-extract new remote postings")
+    p_extract.add_argument("--limit", type=int, default=200)
+    p_extract.add_argument("--max-cost", type=float, default=1.0, help="USD budget for this run")
+    p_extract.add_argument(
+        "--retry-failed", action="store_true", help="try refused/failed postings again"
+    )
+
+    p_eval = sub.add_parser("eval", help="run an eval set")
+    p_eval.add_argument("suite", choices=["regions"])
+    p_eval.add_argument(
+        "--live", action="store_true", help="extract with the LLM (costs API calls)"
+    )
+    p_eval.add_argument("--out", type=Path, help="write the report as JSON")
 
     p_export = sub.add_parser("export", help="write the public JSON feed")
     p_export.add_argument("--out", type=Path, default=Path("public/feed.json"))
@@ -81,6 +102,8 @@ def main(argv: list[str] | None = None) -> int:
 
     if args.command in ("list", "check"):
         return _board_command(args)
+    if args.command == "eval":
+        return _eval_command(args)
 
     from .store import Store
 
@@ -92,6 +115,8 @@ def main(argv: list[str] | None = None) -> int:
             return _crawl_command(store)
         if args.command == "postings":
             return _postings_command(args, store)
+        if args.command == "extract":
+            return _extract_command(args, store)
         return _export_command(args, store)
     finally:
         store.close()
@@ -99,6 +124,15 @@ def main(argv: list[str] | None = None) -> int:
 
 def _now() -> datetime:
     return datetime.now(UTC)
+
+
+def _candidate():
+    from .eligibility import Candidate
+
+    return Candidate(
+        country=os.environ.get("JOB_RADAR_COUNTRY", "TW").upper(),
+        utc_offset=float(os.environ.get("JOB_RADAR_UTC_OFFSET", "8")),
+    )
 
 
 def _board_command(args: argparse.Namespace) -> int:
@@ -209,16 +243,78 @@ def _crawl_command(store) -> int:
 
 
 def _postings_command(args: argparse.Namespace, store) -> int:
+    from .eligibility import assess
+    from .extract import SCHEMA_VERSION
+
+    candidate = _candidate()
     rows = store.open_postings(work_mode=None if args.all_modes else "remote")
     if args.category:
         rows = [r for r in rows if r["category"] == args.category]
+    shown = 0
     for r in rows:
+        verdict = assess(
+            work_mode=r["work_mode"],
+            location_text=r["location"],
+            extraction=store.latest_extraction(r["id"], SCHEMA_VERSION),
+            candidate=candidate,
+        )
+        if args.eligible and verdict.label != "eligible":
+            continue
+        shown += 1
         print(
-            f"{r['company']}\t{r['title']}\t{r['category']}\t{r['work_mode']}\t"
+            f"{r['company']}\t{r['title']}\t{r['category']}\t{verdict.label}\t"
             f"{r['location'] or '-'}\t{r['url']}"
         )
-    print(f"{len(rows)} postings", file=sys.stderr)
+    print(f"{shown} postings", file=sys.stderr)
     return 0
+
+
+def _extract_command(args: argparse.Namespace, store) -> int:
+    from .extract import EXTRACT_MODEL, claude_extractor
+    from .pipeline import extract_pending
+
+    if args.retry_failed:
+        print(f"{store.retry_failed_extractions()} failed extractions queued again")
+    stats = extract_pending(
+        store,
+        claude_extractor(EXTRACT_MODEL),
+        model=EXTRACT_MODEL,
+        limit=args.limit,
+        max_cost_usd=args.max_cost,
+    )
+    print(
+        f"extracted {stats.extracted}, failed {stats.failed}, empty {stats.skipped_empty}, "
+        f"cost US${stats.cost_usd:.4f}" + ("; stopped at budget" if stats.stopped_at_budget else "")
+    )
+    for err in stats.errors[:20]:
+        print(f"  {err}", file=sys.stderr)
+    return 0
+
+
+def _eval_command(args: argparse.Namespace) -> int:
+    import json
+
+    from .evaluate import load_cases, run_live, run_rules
+
+    cases = load_cases()
+    if args.live:
+        from .extract import EXTRACT_MODEL, claude_extractor
+
+        report = run_live(cases, claude_extractor(EXTRACT_MODEL), EXTRACT_MODEL, _candidate())
+    else:
+        report = run_rules(cases, _candidate())
+    summary = report.summary()
+    print(
+        f"{summary['mode']}: {summary['cases']} cases, accuracy {summary['accuracy']:.1%}, "
+        f"blocked recall {summary['blocked_recall']:.1%}, cost US${summary['cost_usd']:.4f} "
+        f"-> {'PASS' if summary['passed'] else 'FAIL'}"
+    )
+    for f in summary["failures"]:
+        print(f"  {f['id']}: expected {f['expected']}, got {f['got']} ({'; '.join(f['reasons'])})")
+    if args.out:
+        args.out.parent.mkdir(parents=True, exist_ok=True)
+        args.out.write_text(json.dumps(summary, ensure_ascii=False, indent=2), encoding="utf-8")
+    return 0 if summary["passed"] else 1
 
 
 def _export_command(args: argparse.Namespace, store) -> int:

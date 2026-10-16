@@ -1,0 +1,43 @@
+# Live region trap eval (docs/spec.md, 評估): extraction prompt, schema, eligibility rules
+# or the case set changed -> extract every case with the LLM and fail below target
+# (accuracy >= 90%, blocked recall >= 95%). The rule-only eval already runs in ci.yml.
+# Needs the ANTHROPIC_API_KEY repository secret; without it the job is skipped.
+name: eval
+
+on:
+  pull_request:
+    paths:
+      - worker/src/job_radar/extract.py
+      - worker/src/job_radar/eligibility.py
+      - worker/src/job_radar/evaluate.py
+      - evals/region_traps/**
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  region-traps:
+    runs-on: ubuntu-latest
+    env:
+      ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+    defaults:
+      run:
+        working-directory: worker
+    steps:
+      - name: Skip without API key
+        if: env.ANTHROPIC_API_KEY == ''
+        run: echo "::notice::ANTHROPIC_API_KEY secret not set; live eval skipped"
+      - uses: actions/checkout@v4
+        if: env.ANTHROPIC_API_KEY != ''
+      - uses: astral-sh/setup-uv@v6
+        if: env.ANTHROPIC_API_KEY != ''
+      - run: uv sync --frozen
+        if: env.ANTHROPIC_API_KEY != ''
+      - run: uv run job-radar eval regions --live --out eval-report.json
+        if: env.ANTHROPIC_API_KEY != ''
+      - uses: actions/upload-artifact@v4
+        if: always() && env.ANTHROPIC_API_KEY != ''
+        with:
+          name: region-trap-report
+          path: worker/eval-report.json
