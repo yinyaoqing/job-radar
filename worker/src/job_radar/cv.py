@@ -283,6 +283,49 @@ def count_pdf_pages(pdf: bytes) -> int:
 # --- application notes -----------------------------------------------------
 
 
+@dataclass(slots=True)
+class RequirementMatch:
+    skill: str
+    must: bool
+    hits: list[str]
+
+
+def match_requirements(
+    extraction: dict[str, Any] | None, store: EvidenceStore
+) -> list[RequirementMatch]:
+    """Each extracted must-have / nice-to-have with the evidence ids that mention it."""
+    extraction = extraction or {}
+    reqs = [(s["skill"], True) for s in extraction.get("must_have") or []]
+    reqs += [(s["skill"], False) for s in extraction.get("nice_to_have") or []]
+    indexed = [(e.id, _words(" ".join(e.tags) + " " + e.claim)) for e in store.evidence.values()]
+    return [
+        RequirementMatch(skill, must, [eid for eid, words in indexed if _words(skill) & words])
+        for skill, must in reqs
+    ]
+
+
+@dataclass(slots=True)
+class Fit:
+    score: int  # 0-100: weighted share of requirements some evidence mentions
+    matched: list[str]
+    gaps: list[str]
+
+
+def fit(extraction: dict[str, Any] | None, store: EvidenceStore) -> Fit | None:
+    """Keyword fit against the evidence store (must-haves weigh 2, nice-to-haves 1).
+    None when the posting has no extracted requirements to compare."""
+    matches = match_requirements(extraction, store)
+    if not matches:
+        return None
+    total = sum(2 if m.must else 1 for m in matches)
+    got = sum(2 if m.must else 1 for m in matches if m.hits)
+    return Fit(
+        score=round(100 * got / total),
+        matched=[m.skill for m in matches if m.hits],
+        gaps=[m.skill for m in matches if m.must and not m.hits],
+    )
+
+
 def application_notes(
     posting: dict[str, Any],
     extraction: dict[str, Any] | None,
@@ -298,19 +341,12 @@ def application_notes(
         lines.append("- **表單禁止使用 AI**：以下只列題目，請自己作答。")
     lines += ["", "## JD 要求 ↔ 證據", "", "| 要求 | 類型 | 對應證據 |", "| --- | --- | --- |"]
     gaps = []
-    reqs = [(s["skill"], "必備") for s in extraction.get("must_have") or []]
-    reqs += [(s["skill"], "加分") for s in extraction.get("nice_to_have") or []]
-    for skill, kind in reqs:
-        words = _words(skill)
-        hits = [
-            e.id
-            for e in store.evidence.values()
-            if words & _words(" ".join(e.tags) + " " + e.claim)
-        ]
-        shown = ", ".join(f"{h}{'（已用於 CV）' if h in cited else ''}" for h in hits[:4])
-        lines.append(f"| {skill} | {kind} | {shown or '—'} |")
-        if not hits and kind == "必備":
-            gaps.append(skill)
+    for match in match_requirements(extraction, store):
+        shown = ", ".join(f"{h}{'（已用於 CV）' if h in cited else ''}" for h in match.hits[:4])
+        kind = "必備" if match.must else "加分"
+        lines.append(f"| {match.skill} | {kind} | {shown or '—'} |")
+        if not match.hits and match.must:
+            gaps.append(match.skill)
     for req in extraction.get("hard_requirements") or []:
         lines.append(f"| {req.get('value')} | 硬性條件（{req.get('type')}） | 請自行確認 |")
     lines += ["", "## 缺口", ""]

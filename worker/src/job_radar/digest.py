@@ -15,6 +15,7 @@ from collections.abc import Mapping
 from dataclasses import dataclass
 from datetime import datetime, timedelta
 from email.message import EmailMessage
+from types import SimpleNamespace
 from typing import Any
 
 from .classify import CATEGORIES, is_general_application
@@ -33,6 +34,7 @@ class DigestItem:
     location: str | None
     url: str
     reason: str
+    fit: int | None = None
 
 
 def last_digest_at(store: Store) -> datetime | None:
@@ -49,19 +51,23 @@ def select(
     since: datetime,
     categories: set[str] | None = None,
     limit: int = DEFAULT_LIMIT,
+    evidence=None,
 ) -> tuple[list[DigestItem], int]:
-    """Up to ``limit`` eligible postings first seen after ``since``, newest first, and how
-    many matched in total."""
+    """Up to ``limit`` eligible postings first seen after ``since`` and how many matched in
+    total. With an evidence store, best fit first; otherwise newest first."""
+    from .cv import fit
+
     matched: list[DigestItem] = []
     for row in store.open_postings(work_mode="remote"):
         if row["first_seen_at"] <= since.isoformat() or is_general_application(row["title"]):
             continue
         if categories and row["category"] not in categories:
             continue
+        extraction = store.latest_extraction(row["id"], SCHEMA_VERSION)
         verdict = assess(
             work_mode=row["work_mode"],
             location_text=row["location"],
-            extraction=store.latest_extraction(row["id"], SCHEMA_VERSION),
+            extraction=extraction,
             candidate=candidate,
         )
         if verdict.label != "eligible":
@@ -74,8 +80,14 @@ def select(
                 location=row["location"],
                 url=row["url"],
                 reason="；".join(verdict.reasons),
+                fit=(fit(extraction, evidence) or SimpleNamespace(score=None)).score
+                if evidence
+                else None,
             )
         )
+    if evidence:
+        # Stable sort keeps newest-first among equal scores; unscored postings go last.
+        matched.sort(key=lambda item: -1 if item.fit is None else -item.fit)
     return matched[:limit], len(matched)
 
 
@@ -89,7 +101,8 @@ def render(items: list[DigestItem], total: int, now: datetime) -> tuple[str, str
     lines = [subject, ""]
     for i, item in enumerate(items, 1):
         lines += [
-            f"{i}. {item.company}｜{item.title}",
+            f"{i}. {item.company}｜{item.title}"
+            + (f"（適配 {item.fit}）" if item.fit is not None else ""),
             f"   {item.category} · {item.location or '-'} · {item.reason}",
             f"   {item.url}",
         ]
@@ -137,9 +150,12 @@ def run(
     env: Mapping[str, str],
     deliver: bool,
     smtp=smtplib.SMTP,
+    evidence=None,
 ) -> dict[str, Any]:
     since = last_digest_at(store) or now - timedelta(days=1)
-    items, total = select(store, candidate=candidate, since=since, categories=categories)
+    items, total = select(
+        store, candidate=candidate, since=since, categories=categories, evidence=evidence
+    )
     subject, text, html_body = render(items, total, now)
     if deliver:
         run_id = store.start_run("digest", now)

@@ -137,3 +137,12 @@ def test_claude_writer_uses_fallbacks_and_handles_refusal(store):
 
 def test_pdf_page_count():
     assert cv.count_pdf_pages(b"<< /Type /Pages >> << /Type /Page >> << /Type/Page >>") == 2
+
+
+def test_fit_weights_must_haves_and_lists_gaps(store):
+    score = cv.fit(EXTRACTION, store)
+    # React (must, matched) 2 + GraphQL (must, gap) 0 + Playwright (nice, matched) 1, of 5.
+    assert score.score == 60
+    assert score.matched == ["React", "Playwright"]
+    assert score.gaps == ["GraphQL"]
+    assert cv.fit({}, store) is None

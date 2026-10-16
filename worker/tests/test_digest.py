@@ -110,3 +110,35 @@ def test_render_escapes_html():
     _, text, body = digest.render([item], 1, T0)
     assert "<Lead>" in text
     assert "&lt;Lead&gt;" in body and "a=1&amp;b=2" in body
+
+
+def test_select_orders_by_fit_with_an_evidence_store():
+    from pathlib import Path
+
+    from job_radar.cv import EvidenceStore
+    from job_radar.extract import SCHEMA_VERSION
+
+    evidence = EvidenceStore.load(
+        Path(__file__).resolve().parents[2] / "evals" / "cv" / "example-evidence.yaml"
+    )
+    store = store_with([posting("go", "Backend Engineer"), posting("fe", "Frontend Engineer")])
+    store.db.execute("UPDATE postings SET location = 'Anywhere'")
+    skills = {"go": ["Go", "Kafka"], "fe": ["React", "TypeScript"]}
+    for row in store.open_postings():
+        snapshot = store.db.execute(
+            "SELECT id FROM posting_snapshots WHERE posting_id = ?", (row["id"],)
+        ).fetchone()["id"]
+        store.save_extraction(
+            snapshot,
+            model="t",
+            schema_version=SCHEMA_VERSION,
+            now=T0,
+            payload={"must_have": [{"skill": s, "quote": s} for s in skills[row["ats_job_id"]]]},
+        )
+    items, _ = digest.select(
+        store, candidate=Candidate(), since=T0 - timedelta(hours=1), evidence=evidence
+    )
+    assert [(i.title, i.fit) for i in items] == [
+        ("Frontend Engineer", 100),
+        ("Backend Engineer", 0),
+    ]

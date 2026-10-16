@@ -78,6 +78,9 @@ def main(argv: list[str] | None = None) -> int:
     p_postings.add_argument(
         "--eligible", action="store_true", help="only postings you can apply to (see below)"
     )
+    p_postings.add_argument(
+        "--evidence", type=Path, help="evidence store YAML: add a fit score and sort by it"
+    )
 
     p_extract = sub.add_parser("extract", help="LLM-extract new remote postings")
     p_extract.add_argument("--limit", type=int, default=200)
@@ -272,26 +275,41 @@ def _postings_command(args: argparse.Namespace, store) -> int:
     from .eligibility import assess
     from .extract import SCHEMA_VERSION
 
+    evidence = None
+    if args.evidence:
+        from .cv import EvidenceStore, fit
+
+        evidence = EvidenceStore.load(args.evidence)
     candidate = _candidate()
     rows = store.open_postings(work_mode=None if args.all_modes else "remote")
     if args.category:
         rows = [r for r in rows if r["category"] == args.category]
-    shown = 0
+    lines: list[tuple[int, str]] = []
     for r in rows:
+        extraction = store.latest_extraction(r["id"], SCHEMA_VERSION)
         verdict = assess(
             work_mode=r["work_mode"],
             location_text=r["location"],
-            extraction=store.latest_extraction(r["id"], SCHEMA_VERSION),
+            extraction=extraction,
             candidate=candidate,
         )
         if args.eligible and verdict.label != "eligible":
             continue
-        shown += 1
-        print(
-            f"{r['company']}\t{r['title']}\t{r['category']}\t{verdict.label}\t"
-            f"{r['location'] or '-'}\t{r['url']}"
+        score = fit(extraction, evidence) if evidence else None
+        shown_score = "-" if score is None else str(score.score)
+        lines.append(
+            (
+                -1 if score is None else score.score,
+                f"{r['company']}\t{r['title']}\t{r['category']}\t{verdict.label}\t"
+                + (f"fit {shown_score}\t" if evidence else "")
+                + f"{r['location'] or '-'}\t{r['url']}",
+            )
         )
-    print(f"{shown} postings", file=sys.stderr)
+    if evidence:
+        lines.sort(key=lambda pair: -pair[0])
+    for _, line in lines:
+        print(line)
+    print(f"{len(lines)} postings", file=sys.stderr)
     return 0
 
 
@@ -387,6 +405,12 @@ def _digest_command(args: argparse.Namespace, store) -> int:
     categories = {
         c.strip() for c in os.environ.get("JOB_RADAR_CATEGORIES", "").split(",") if c.strip()
     }
+    evidence_path = os.environ.get("JOB_RADAR_EVIDENCE")
+    evidence = None
+    if evidence_path:
+        from .cv import EvidenceStore
+
+        evidence = EvidenceStore.load(Path(evidence_path))
     result = digest.run(
         store,
         candidate=_candidate(),
@@ -394,6 +418,7 @@ def _digest_command(args: argparse.Namespace, store) -> int:
         now=_now(),
         env=os.environ,
         deliver=args.send,
+        evidence=evidence,
     )
     print(result["text"], end="")
     if args.send:
