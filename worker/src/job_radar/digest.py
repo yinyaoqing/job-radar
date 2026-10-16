@@ -69,6 +69,8 @@ def select(
             location_text=row["location"],
             extraction=extraction,
             candidate=candidate,
+            ats_country=row["ats_country"],
+            title=row["title"],
         )
         if verdict.label != "eligible":
             continue

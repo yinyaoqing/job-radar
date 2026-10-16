@@ -103,8 +103,11 @@ export function judgePolicy(policy: LocationPolicy, candidate: Candidate, region
     }
   }
 
-  const hours = policy.required_overlap_hours;
+  let hours = policy.required_overlap_hours;
   const reference = policy.overlap_reference_utc;
+  // More than 12 hours a day is impossible: the posting meant hours per week.
+  const weekly = !!hours && hours > 12 && hours <= 60;
+  if (weekly && hours) hours = hours / 5;
   if (hours) {
     if (reference == null) return ["unclear", `要求重疊 ${hours} 小時，但沒說和哪個時區`];
     const overlap = overlapHours(candidate, reference);
@@ -112,6 +115,7 @@ export function judgePolicy(policy: LocationPolicy, candidate: Candidate, region
       return ["blocked", `要求與 UTC${signed(reference)} 重疊 ${hours} 小時，只能重疊 ${overlap} 小時`];
     }
     reason += `；與 UTC${signed(reference)} 可重疊 ${overlap} 小時`;
+    if (weekly) reason += "（每週時數換算成每日）";
   } else if (kind === "timezone_window" && !window) {
     // A time-zone limit without offsets is still a limit; never read it as "anywhere".
     return ["unclear", "有時區限制，但沒有可判斷的範圍"];
@@ -163,6 +167,15 @@ export function assess(posting: Posting, candidate: Candidate, regions: Regions)
   }
   if (jdVerdict) return { label: jdVerdict[0], reasons: [jdVerdict[1]] };
   if (textVerdict) return { label: textVerdict[0], reasons: [`依 ATS 地點欄位：${textVerdict[1]}`] };
+  if (posting.ats_country) {
+    // Last resort: the ATS's structured country, often a company-wide default.
+    const [label, reason] = judgePolicy(
+      { type: "country_list", countries: [posting.ats_country] },
+      candidate,
+      regions,
+    );
+    return { label, reasons: [`內文與地點欄位都沒寫；ATS 設定的國家：${reason}`] };
+  }
   return {
     label: "unclear",
     reasons: [posting.extracted ? "沒有說明可申請地區" : "尚未分析職缺內文"],

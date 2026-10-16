@@ -18,7 +18,7 @@ from pydantic import BaseModel, Field
 from .textutil import normalize, quote_in
 
 # Bumped when the schema or the prompt changes meaning; older extractions are redone.
-SCHEMA_VERSION = 2
+SCHEMA_VERSION = 3
 EXTRACT_MODEL = "claude-haiku-5-5"
 # USD per million tokens for prompts up to 100K tokens (docs: claude-api models table).
 PRICE_PER_MTOK = {"claude-haiku-5-5": (0.10, 0.50)}
@@ -126,6 +126,9 @@ Location policy, the field people rely on most:
 - A place that implies a country ("US West Coast", "Bay Area", "South Central US") also goes
   in countries, and the type is "country_list".
 - Never leave a time-zone limit without numbers: if the posting names a zone, give offsets.
+- required_overlap_hours is per day. "20 hours a week" of overlap is 4 per day.
+- Preferences are not limits: "preferred", "ideally", "a plus", "we prefer someone in" do
+  not restrict who may apply, so they stay out of countries, regions and time windows.
 - Overlap with a team or office in a named city ("our Singapore office") is an overlap
   requirement with that city's offset; on its own it does not restrict where you live, so
   use type "worldwide" unless the posting also limits location.

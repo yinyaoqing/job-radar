@@ -8,7 +8,7 @@ from __future__ import annotations
 from typing import Any
 
 from ..classify import work_mode_from_text
-from .base import Adapter, AdapterError, Posting, parse_iso
+from .base import Adapter, AdapterError, Posting, country_code, parse_iso
 
 WORKPLACE_TYPES = {"Remote": "remote", "Hybrid": "hybrid", "OnSite": "onsite"}
 
@@ -85,6 +85,9 @@ class AshbyAdapter(Adapter):
             location=job.get("location"),
             work_mode=work_mode,
             department=job.get("department") or job.get("team"),
+            ats_country=country_code(
+                ((job.get("address") or {}).get("postalAddress") or {}).get("addressCountry")
+            ),
             published_at=parse_iso(job.get("publishedAt")),
             description=job.get("descriptionPlain"),
             raw=job,

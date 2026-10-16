@@ -115,6 +115,97 @@ _COUNTRY_NAMES = {
     "u.s.": "US",
     "america": "US",
     "west coast": "US",
+    "u.s.a.": "US",
+    "u.s.a": "US",
+    "belgium": "BE",
+    "austria": "AT",
+    "denmark": "DK",
+    "finland": "FI",
+    "norway": "NO",
+    "czech republic": "CZ",
+    "czechia": "CZ",
+    "romania": "RO",
+    "greece": "GR",
+    "hungary": "HU",
+    "ukraine": "UA",
+    "turkey": "TR",
+    "egypt": "EG",
+    "pakistan": "PK",
+    "bangladesh": "BD",
+    "sri lanka": "LK",
+    "nepal": "NP",
+    "china": "CN",
+    "peru": "PE",
+    "uruguay": "UY",
+    "costa rica": "CR",
+    "the netherlands": "NL",
+    # US states, regions and big cities, and Canadian provinces, as ATS fields name them.
+    "alabama": "US",
+    "alaska": "US",
+    "arizona": "US",
+    "arkansas": "US",
+    "california": "US",
+    "colorado": "US",
+    "connecticut": "US",
+    "delaware": "US",
+    "florida": "US",
+    "hawaii": "US",
+    "idaho": "US",
+    "illinois": "US",
+    "indiana": "US",
+    "iowa": "US",
+    "kansas": "US",
+    "kentucky": "US",
+    "louisiana": "US",
+    "maine": "US",
+    "maryland": "US",
+    "massachusetts": "US",
+    "michigan": "US",
+    "minnesota": "US",
+    "mississippi": "US",
+    "missouri": "US",
+    "montana": "US",
+    "nebraska": "US",
+    "nevada": "US",
+    "ohio": "US",
+    "oklahoma": "US",
+    "oregon": "US",
+    "pennsylvania": "US",
+    "tennessee": "US",
+    "texas": "US",
+    "utah": "US",
+    "vermont": "US",
+    "virginia": "US",
+    "wisconsin": "US",
+    "wyoming": "US",
+    "new hampshire": "US",
+    "new jersey": "US",
+    "new mexico": "US",
+    "new york": "US",
+    "north carolina": "US",
+    "north dakota": "US",
+    "rhode island": "US",
+    "south carolina": "US",
+    "south dakota": "US",
+    "west virginia": "US",
+    "washington": "US",
+    "midwest": "US",
+    "pacific northwest": "US",
+    "bay area": "US",
+    "san francisco": "US",
+    "los angeles": "US",
+    "seattle": "US",
+    "chicago": "US",
+    "boston": "US",
+    "austin": "US",
+    "denver": "US",
+    "ontario": "CA",
+    "quebec": "CA",
+    "british columbia": "CA",
+    "alberta": "CA",
+    "toronto": "CA",
+    "vancouver": "CA",
+    "montreal": "CA",
     "east coast": "US",
     "canada": "CA",
     "mexico": "MX",
@@ -167,6 +258,8 @@ _REGION_WORDS = {
     "south america": "LATAM",
     "north america": "NORTH_AMERICA",
     "americas": "AMERICAS",
+    "amer": "AMERICAS",
+    "apj": "APAC",
     "apac": "APAC",
     "asia pacific": "APAC",
     "asia-pacific": "APAC",
@@ -203,9 +296,10 @@ class Assessment:
     quotes: list[str] = field(default_factory=list)
 
 
-def policy_from_location_text(text: str | None) -> dict[str, Any] | None:
+def policy_from_location_text(text: str | None, *, strict: bool = False) -> dict[str, Any] | None:
     """A rough policy from the ATS location field, or None when it says nothing definite
-    (a bare "Remote" says nothing about where)."""
+    (a bare "Remote" says nothing about where). ``strict`` is for job titles: only named
+    countries and regions count, not "anywhere" or two-letter state codes."""
     if not text:
         return None
     lowered = f" {text.lower()} "
@@ -219,10 +313,16 @@ def policy_from_location_text(text: str | None) -> dict[str, Any] | None:
         if re.search(rf"(?<![a-z.]){re.escape(name)}(?![a-z])", lowered):
             countries.add(code)
             lowered = lowered.replace(name, " ")
-    for token in re.findall(r"\b([A-Z]{2})\b", text):
-        if token in _US_STATES and re.search(r"remote", text, re.I):
+    if not strict:
+        for token in re.findall(r"\b([A-Z]{2})\b", text):
+            if token in _US_STATES and re.search(r"remote", text, re.I):
+                countries.add("US")
+        # "Chicago, IL" / "Austin, TX"
+        if any(t in _US_STATES for t in re.findall(r",\s*([A-Z]{2})\b", text)):
             countries.add("US")
     if not countries and not regions:
+        if strict:
+            return None
         # "Anywhere" counts only when no place is named ("Anywhere, United States" is
         # the US, not the world).
         if _WORLDWIDE.search(text):
@@ -245,6 +345,12 @@ def _overlap_hours(candidate: Candidate, reference_utc: float) -> float:
     for day in (-24, 0, 24):
         best = max(best, min(end, team_end + day) - max(start, team_start + day))
     return max(0.0, best)
+
+
+def field_policy(location: str | None, title: str | None = None) -> dict[str, Any] | None:
+    """What the ATS fields say about where: the location field, else places the title
+    names ("Account Executive, APAC", "Customer Success Manager - US")."""
+    return policy_from_location_text(location) or policy_from_location_text(title, strict=True)
 
 
 def has_time_limit(policy: dict[str, Any] | None) -> bool:
@@ -288,6 +394,10 @@ def judge_policy(policy: dict[str, Any], candidate: Candidate) -> tuple[str, str
 
     hours = policy.get("required_overlap_hours")
     reference = policy.get("overlap_reference_utc")
+    weekly = bool(hours and 12 < hours <= 60)
+    if weekly:
+        # More than 12 hours a day is impossible: the posting meant hours per week.
+        hours = hours / 5
     if hours:
         if reference is None:
             return "unclear", f"要求重疊 {hours:g} 小時，但沒說和哪個時區"
@@ -298,6 +408,8 @@ def judge_policy(policy: dict[str, Any], candidate: Candidate) -> tuple[str, str
                 f"要求與 UTC{reference:+g} 重疊 {hours:g} 小時，只能重疊 {overlap:g} 小時",
             )
         reason += f"；與 UTC{reference:+g} 可重疊 {overlap:g} 小時"
+        if weekly:
+            reason += "（每週時數換算成每日）"
     elif kind == "timezone_window" and not window:
         # A time-zone limit the extraction could not turn into offsets ("Pacific time",
         # "West Coast") is a limit all the same; never read it as "anywhere".
@@ -315,12 +427,14 @@ def assess(
     location_text: str | None,
     extraction: dict[str, Any] | None,
     candidate: Candidate | None = None,
+    ats_country: str | None = None,
+    title: str | None = None,
 ) -> Assessment:
     candidate = candidate or Candidate()
     if work_mode in ("onsite", "hybrid"):
         return Assessment("blocked", ["不是全遠端"])
 
-    from_text = policy_from_location_text(location_text)
+    from_text = field_policy(location_text, title)
     text_verdict = judge_policy(from_text, candidate) if from_text else None
 
     policy = (extraction or {}).get("location_policy")
@@ -356,6 +470,10 @@ def assess(
         return Assessment(jd_verdict[0], [jd_verdict[1]], quotes)
     if text_verdict:
         return Assessment(text_verdict[0], [f"依 ATS 地點欄位：{text_verdict[1]}"])
+    if ats_country:
+        # Last resort: the ATS's structured country, often a company-wide default.
+        verdict = judge_policy({"type": "country_list", "countries": [ats_country]}, candidate)
+        return Assessment(verdict[0], [f"內文與地點欄位都沒寫；ATS 設定的國家：{verdict[1]}"])
     reason = "抽取的地點引文對不上原文" if policy and not verified else "沒有說明可申請地區"
     return Assessment("unclear", [reason])
 

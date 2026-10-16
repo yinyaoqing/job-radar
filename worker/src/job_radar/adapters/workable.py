@@ -37,9 +37,20 @@ class WorkableAdapter(Adapter):
                 if job.get("state", "published") == "published"
             ]
             if not data.get("nextPage"):
-                return postings
+                return [self._with_description(org, p) for p in postings]
             body["token"] = data["nextPage"]
         raise AdapterError(f"workable: {org} has more than {MAX_PAGES} pages")
+
+    def _with_description(self, org: str, posting: Posting) -> Posting:
+        """The board list has no description; remote postings need one for extraction,
+        so they cost one more request each (throttled like every other call)."""
+        if posting.work_mode != "remote" or posting.description:
+            return posting
+        try:
+            detailed = self.get(org, posting.ats_job_id)
+        except AdapterError:
+            return posting
+        return detailed or posting
 
     def get(self, org: str, job_id: str) -> Posting | None:
         job = self._get_json(JOB_URL.format(org=org, shortcode=job_id))

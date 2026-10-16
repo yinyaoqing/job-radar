@@ -6,7 +6,7 @@ from datetime import UTC, datetime
 from typing import Any
 
 from ..classify import work_mode_from_text
-from .base import Adapter, AdapterError, Posting
+from .base import Adapter, AdapterError, Posting, country_code
 
 BASE_URL = "https://api.lever.co/v0/postings/{org}"
 WORKPLACE_TYPES = {"remote": "remote", "hybrid": "hybrid", "onsite": "onsite"}
@@ -40,6 +40,7 @@ class LeverAdapter(Adapter):
             work_mode=WORKPLACE_TYPES.get(job.get("workplaceType") or "")
             or work_mode_from_text(location),
             department=categories.get("team") or categories.get("department"),
+            ats_country=country_code(job.get("country")),
             published_at=datetime.fromtimestamp(created / 1000, tz=UTC) if created else None,
             description=job.get("descriptionPlain"),
             raw=job,

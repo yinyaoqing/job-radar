@@ -197,3 +197,28 @@ def test_unexpected_status_raises():
     adapter = LeverAdapter(client(lambda r: httpx.Response(500)))
     with pytest.raises(AdapterError):
         adapter.get("acme", "x")
+
+
+def test_structured_country_is_kept_apart_from_the_location():
+    ashby_job = {
+        "id": "1",
+        "title": "Engineer",
+        "jobUrl": "u",
+        "isListed": True,
+        "location": "Remote",
+        "workplaceType": "Remote",
+        "address": {"postalAddress": {"addressCountry": "United States"}},
+    }
+    [a] = AshbyAdapter(client(lambda r: httpx.Response(200, json={"jobs": [ashby_job]}))).list("x")
+    assert (a.location, a.ats_country) == ("Remote", "US")
+
+    lever_job = {
+        "id": "x",
+        "text": "FE",
+        "hostedUrl": "u",
+        "country": "us",
+        "categories": {"location": "Remote"},
+        "workplaceType": "remote",
+    }
+    lever = LeverAdapter(client(lambda r: httpx.Response(200, json=lever_job))).get("acme", "x")
+    assert (lever.location, lever.ats_country) == ("Remote", "US")

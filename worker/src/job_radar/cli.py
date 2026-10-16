@@ -292,6 +292,8 @@ def _postings_command(args: argparse.Namespace, store) -> int:
             location_text=r["location"],
             extraction=extraction,
             candidate=candidate,
+            ats_country=r["ats_country"],
+            title=r["title"],
         )
         if args.eligible and verdict.label != "eligible":
             continue

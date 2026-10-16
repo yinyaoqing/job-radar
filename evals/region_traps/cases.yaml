@@ -349,3 +349,25 @@
   text: You must work US Central (UTC-6) business hours.
   policy: {type: worldwide, overlap: [8, -6]}
   expected: blocked
+
+- id: weekly-overlap-eastern
+  trap: overlap
+  location: Remote
+  text: We hire almost anywhere. No matter what, working hours must overlap with EST for at least 20 hours a week.
+  policy: {type: worldwide, overlap: [4, -5]}
+  expected: blocked
+
+- id: preference-is-not-a-limit
+  trap: preference
+  location: Remote
+  text: We hire anywhere in the world, but for this role we would prefer someone in Europe; a time zone between UTC-8 and UTC+2 is a plus.
+  policy: {type: worldwide}
+  expected: eligible
+
+- id: silent-jd-ats-country-us
+  trap: structured_country
+  location: Remote
+  ats_country: US
+  text: Join our platform team and build the tools our customers rely on.
+  policy: {type: unknown}
+  expected: blocked

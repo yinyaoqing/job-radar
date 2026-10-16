@@ -4,7 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import type { Assessment } from "@/lib/eligibility";
 import type { Posting } from "@/lib/feed";
-import type { Mark } from "@/lib/storage";
+import type { Mark, Override } from "@/lib/storage";
 import { cn, daysAgo, formatSalary } from "@/lib/utils";
 
 export const ELIGIBILITY_LABEL = { eligible: "可申請", blocked: "地區受限", unclear: "待確認" } as const;
@@ -25,9 +25,23 @@ interface Props {
   isNew: boolean;
   mark?: Mark;
   onMark: (posting: Posting, mark: Mark | null) => void;
+  /** Set when the visitor decided this posting themselves. */
+  override?: Override;
+  onOverride: (posting: Posting, value: Override | null) => void;
 }
 
-export function PostingCard({ posting, categoryLabel, verdict, isNew, mark, onMark }: Props) {
+export function PostingCard({
+  posting,
+  categoryLabel,
+  verdict,
+  isNew,
+  mark,
+  onMark,
+  override,
+  onOverride,
+}: Props) {
+  const hint = posting.company_hint;
+  const undecided = verdict.label === "unclear" || override;
   const toggle = (next: Mark) => onMark(posting, mark === next ? null : next);
   return (
     <article
@@ -53,6 +67,36 @@ export function PostingCard({ posting, categoryLabel, verdict, isNew, mark, onMa
           .join(" · ")}
       </p>
       <p className="mt-2 text-sm">{verdict.reasons.join("；")}</p>
+      {undecided && (
+        <div className="mt-2 rounded-md bg-muted/60 p-2.5 text-sm">
+          {hint && !override && (
+            <p className="text-muted-foreground">
+              參考：同公司其他 {hint.postings} 個職缺限 {hint.places.join("、")}
+            </p>
+          )}
+          {!override && (
+            <p className="text-muted-foreground">
+              職缺沒寫哪裡可以申請。到 ATS 看申請表（常有「居住國家」的選項），或問 recruiter，再記下結果：
+            </p>
+          )}
+          <div className="mt-1.5 flex flex-wrap gap-1.5">
+            {override ? (
+              <Button size="sm" variant="ghost" onClick={() => onOverride(posting, null)}>
+                取消我的確認
+              </Button>
+            ) : (
+              <>
+                <Button size="sm" variant="outline" onClick={() => onOverride(posting, "eligible")}>
+                  我確認可申請
+                </Button>
+                <Button size="sm" variant="outline" onClick={() => onOverride(posting, "blocked")}>
+                  我確認不可申請
+                </Button>
+              </>
+            )}
+          </div>
+        </div>
+      )}
 
       <div className="mt-2 flex flex-wrap gap-1.5">
         {posting.salary && <Badge>{formatSalary(posting.salary)}</Badge>}

@@ -47,6 +47,7 @@ CREATE TABLE IF NOT EXISTS postings (
     work_mode        TEXT NOT NULL DEFAULT 'unknown',
     department       TEXT,
     category         TEXT NOT NULL DEFAULT 'other',
+    ats_country      TEXT,
     published_at     TEXT,
     status           TEXT NOT NULL CHECK (status IN ('open', 'closed')),
     first_seen_at    TEXT NOT NULL,
@@ -99,6 +100,7 @@ ADDED_COLUMNS = {
         "work_mode": "TEXT NOT NULL DEFAULT 'unknown'",
         "department": "TEXT",
         "category": "TEXT NOT NULL DEFAULT 'other'",
+        "ats_country": "TEXT",
     },
 }
 
@@ -239,15 +241,16 @@ class Store:
                 p.work_mode,
                 p.department,
                 classify(p.title, p.department),
+                p.ats_country,
                 p.published_at.isoformat() if p.published_at else None,
             )
             row = known.get(p.ats_job_id)
             if row is None:
                 cur = self.db.execute(
                     """INSERT INTO postings (company_id, ats_job_id, title, url, location,
-                           work_mode, department, category, published_at, status,
-                           first_seen_at, last_verified_at)
-                       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'open', ?, ?)""",
+                           work_mode, department, category, ats_country, published_at,
+                           status, first_seen_at, last_verified_at)
+                       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'open', ?, ?)""",
                     (company_id, p.ats_job_id, *fields, ts, ts),
                 )
                 posting_id, last_hash = cur.lastrowid, None
@@ -255,8 +258,8 @@ class Store:
             else:
                 self.db.execute(
                     """UPDATE postings SET title = ?, url = ?, location = ?, work_mode = ?,
-                           department = ?, category = ?, published_at = ?, status = 'open',
-                           last_verified_at = ?, closed_at = NULL
+                           department = ?, category = ?, ats_country = ?, published_at = ?,
+                           status = 'open', last_verified_at = ?, closed_at = NULL
                        WHERE id = ?""",
                     (*fields, ts, row["id"]),
                 )

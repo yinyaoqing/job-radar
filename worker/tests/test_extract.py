@@ -327,3 +327,71 @@ def test_failed_overlap_blocks_even_when_place_is_unknown():
     unknown_with_overlap["location_policy"]["overlap_reference_utc"] = 1
     verdict = assess(work_mode="remote", location_text="Remote", extraction=unknown_with_overlap)
     assert verdict.label == "unclear"
+
+
+def test_company_hint_needs_agreeing_postings():
+    from job_radar.export import company_hints
+
+    us = {"type": "country_list", "countries": ["US"], "regions": []}
+    postings = [
+        {"company": "A", "location_policy": us, "field_policy": None},
+        {"company": "A", "location_policy": None, "field_policy": us},
+        {"company": "A", "location_policy": None, "field_policy": None},
+        {"company": "B", "location_policy": us, "field_policy": None},
+    ]
+    assert company_hints(postings) == {"A": {"places": ["US"], "postings": 2}}
+
+
+def test_ats_country_is_only_a_fallback():
+    worldwide = {
+        "location_policy": {"type": "worldwide"},
+        "checks": {"location_verified": True},
+    }
+    # The JD says anywhere: a company-wide default country does not contradict it.
+    assert (
+        assess(
+            work_mode="remote", location_text="Remote", extraction=worldwide, ats_country="US"
+        ).label
+        == "eligible"
+    )
+    # Nothing anywhere else: the structured country decides, and says so.
+    verdict = assess(work_mode="remote", location_text="Remote", extraction=None, ats_country="US")
+    assert verdict.label == "blocked"
+    assert "ATS 設定的國家" in verdict.reasons[0]
+
+
+def test_weekly_overlap_hours_become_daily():
+    weekly = {
+        "location_policy": {
+            "type": "worldwide",
+            "required_overlap_hours": 20,  # "20 hours a week with EST"
+            "overlap_reference_utc": -5,
+        },
+        "checks": {"location_verified": True},
+    }
+    verdict = assess(work_mode="remote", location_text="Remote", extraction=weekly)
+    assert verdict.label == "blocked"  # 4 h/day needed, 1 h available from UTC+8
+    assert "重疊 4 小時" in verdict.reasons[0]
+
+
+@pytest.mark.parametrize(
+    ("location", "title", "countries"),
+    [
+        ("California", "Account Executive", ["US"]),
+        ("Chicago, IL", "Account Executive", ["US"]),
+        ("New York, New York", "Account Executive", ["US"]),
+        ("Toronto", "Engineer", ["CA"]),
+        ("Remote", "Customer Success Manager - US [IC2]", ["US"]),
+        ("Remote", "Senior Account Executive, Indiana + Michigan", ["US"]),
+    ],
+)
+def test_field_policy_reads_states_cities_and_titles(location, title, countries):
+    from job_radar.eligibility import field_policy
+
+    assert field_policy(location, title)["countries"] == countries
+
+
+def test_title_alone_never_says_worldwide():
+    from job_radar.eligibility import field_policy
+
+    assert field_policy("Remote", "Engineer (Remote, Worldwide)") is None

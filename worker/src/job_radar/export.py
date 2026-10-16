@@ -20,7 +20,7 @@ from pathlib import Path
 from typing import Any
 
 from .classify import CATEGORIES, is_general_application
-from .eligibility import REGIONS, has_time_limit, policy_from_location_text
+from .eligibility import REGIONS, field_policy, has_time_limit, policy_from_location_text
 from .extract import SCHEMA_VERSION
 from .store import Store
 
@@ -85,6 +85,26 @@ def _from_extraction(extraction: dict[str, Any] | None) -> dict[str, Any]:
     }
 
 
+def company_hints(postings: list[dict[str, Any]]) -> dict[str, dict[str, Any]]:
+    """Where a company's other postings say candidates must be, when they agree: a hint
+    for postings that say nothing, shown next to them, never used as a verdict."""
+    places: dict[str, Counter] = {}
+    for p in postings:
+        for policy in (p.get("location_policy"), p.get("field_policy")):
+            if policy and policy.get("type") in ("country_list", "region_list"):
+                key = tuple(
+                    sorted(policy.get("countries") or []) + sorted(policy.get("regions") or [])
+                )
+                places.setdefault(p["company"], Counter())[key] += 1
+                break
+    hints = {}
+    for company, counter in places.items():
+        (top, n), total = counter.most_common(1)[0], sum(counter.values())
+        if n >= 2 and n / total >= 0.8:
+            hints[company] = {"places": list(top), "postings": n}
+    return hints
+
+
 def build_feed(store: Store, now: datetime) -> dict[str, Any]:
     postings = [
         {
@@ -97,7 +117,8 @@ def build_feed(store: Store, now: datetime) -> dict[str, Any]:
             "department": r["department"],
             "location": r["location"],
             "work_mode": r["work_mode"],
-            "field_policy": policy_from_location_text(r["location"]),
+            "field_policy": field_policy(r["location"], r["title"]),
+            "ats_country": r["ats_country"],
             "url": r["url"],
             "ats": r["ats"],
             "published_at": r["published_at"],
@@ -108,6 +129,9 @@ def build_feed(store: Store, now: datetime) -> dict[str, Any]:
         for r in store.open_postings(work_mode="remote")
         if not is_general_application(r["title"])
     ]
+    hints = company_hints(postings)
+    for posting in postings:
+        posting["company_hint"] = hints.get(posting["company"])
     counts = Counter(p["category"] for p in postings)
     return {
         "version": FEED_VERSION,

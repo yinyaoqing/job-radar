@@ -33,6 +33,8 @@ def workable_job(shortcode: str, workplace: str = "remote", **extra) -> dict:
 
 def test_workable_list_follows_next_page_token():
     def handler(request: httpx.Request) -> httpx.Response:
+        if request.method == "GET":  # detail for the remote posting
+            return httpx.Response(200, json=workable_job("A", description="<p>Full JD</p>"))
         body = json.loads(request.content)
         if "token" not in body:
             return httpx.Response(200, json={"results": [workable_job("A")], "nextPage": "t2"})
@@ -43,6 +45,8 @@ def test_workable_list_follows_next_page_token():
     assert first.url == "https://apply.workable.com/acme/j/A/"
     assert (first.work_mode, first.location) == ("remote", "Remote (United States)")
     assert first.department == "Design"
+    assert first.description == "<p>Full JD</p>"  # fetched because the list has none
+    assert second.description is None  # onsite: no extra request
     assert (second.work_mode, second.location) == ("onsite", "United States")
 
 

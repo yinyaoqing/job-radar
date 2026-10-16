@@ -13,10 +13,13 @@ import { type Feed, loadFeed, type Posting } from "@/lib/feed";
 import {
   loadCandidate,
   loadMarks,
+  loadOverrides,
   type Mark,
+  type Override,
   type SavedPosting,
   saveCandidate,
   saveMarks,
+  saveOverrides,
   type Stage,
   touchLastVisit,
 } from "@/lib/storage";
@@ -30,6 +33,7 @@ export function JobBoard() {
   const [error, setError] = useState<string | null>(null);
   const [candidate, setCandidate] = useState<Candidate>(DEFAULT_CANDIDATE);
   const [marks, setMarks] = useState<Record<string, SavedPosting>>({});
+  const [overrides, setOverrides] = useState<Record<string, Override>>({});
   const [lastVisit, setLastVisit] = useState<string | null>(null);
   const [view, setView] = useState<View>("postings");
   const [categories, setCategories] = useState<Set<string>>(new Set());
@@ -40,6 +44,7 @@ export function JobBoard() {
   useEffect(() => {
     setCandidate(loadCandidate());
     setMarks(loadMarks());
+    setOverrides(loadOverrides());
     setLastVisit(touchLastVisit());
     loadFeed().then(setFeed, (e: Error) => setError(e.message));
   }, []);
@@ -51,11 +56,16 @@ export function JobBoard() {
 
   const assessed = useMemo(
     () =>
-      (feed?.postings ?? []).map((posting) => ({
-        posting,
-        verdict: assess(posting, candidate, feed?.regions ?? {}),
-      })),
-    [feed, candidate],
+      (feed?.postings ?? []).map((posting) => {
+        const own = overrides[posting.id];
+        return {
+          posting,
+          verdict: own
+            ? { label: own, reasons: [`你已確認${own === "eligible" ? "可以" : "不能"}申請`] }
+            : assess(posting, candidate, feed?.regions ?? {}),
+        };
+      }),
+    [feed, candidate, overrides],
   );
 
   const visible = useMemo(() => {
@@ -111,6 +121,14 @@ export function JobBoard() {
       };
     }
     updateMarks(next);
+  };
+
+  const overridePosting = (posting: Posting, value: Override | null) => {
+    const next = { ...overrides };
+    if (value === null) delete next[posting.id];
+    else next[posting.id] = value;
+    setOverrides(next);
+    saveOverrides(next);
   };
 
   const moveSaved = (id: string, stage: Stage | null) => {
@@ -246,6 +264,8 @@ export function JobBoard() {
                 isNew={!!lastVisit && posting.first_seen_at > lastVisit}
                 mark={marks[posting.id]?.mark}
                 onMark={markPosting}
+                override={overrides[posting.id]}
+                onOverride={overridePosting}
               />
             ))}
           </div>

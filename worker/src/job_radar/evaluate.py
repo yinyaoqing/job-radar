@@ -100,6 +100,8 @@ def run_rules(cases: list[dict[str, Any]], candidate: Candidate | None = None) -
         verdict = assess(
             work_mode=case.get("work_mode", "remote"),
             location_text=case.get("location"),
+            ats_country=case.get("ats_country"),
+            title=case.get("title"),
             extraction=extraction,
             candidate=candidate,
         )
@@ -134,6 +136,8 @@ def run_live(
         verdict = assess(
             work_mode=case.get("work_mode", "remote"),
             location_text=case.get("location"),
+            ats_country=case.get("ats_country"),
+            title=case.get("title"),
             extraction=payload,
             candidate=candidate,
         )
@@ -149,7 +153,7 @@ WEB_FIXTURE = DEFAULT_CASES.parents[2] / "web" / "lib" / "__fixtures__" / "regio
 def web_fixture(cases: list[dict[str, Any]]) -> list[dict[str, Any]]:
     """The region trap cases as feed postings, for web/lib/eligibility.test.ts: the site's
     port of the rules must reach the same verdicts from the same feed fields."""
-    from .eligibility import has_time_limit, policy_from_location_text
+    from .eligibility import field_policy, has_time_limit
     from .export import hard_blocks
 
     fixture = []
@@ -162,7 +166,8 @@ def web_fixture(cases: list[dict[str, Any]]) -> list[dict[str, Any]]:
                 "posting": {
                     "work_mode": case.get("work_mode", "remote"),
                     "location": case.get("location"),
-                    "field_policy": policy_from_location_text(case.get("location")),
+                    "field_policy": field_policy(case.get("location"), case.get("title")),
+                    "ats_country": case.get("ats_country"),
                     "extracted": True,
                     "location_policy": None
                     if policy["type"] == "unknown" and not has_time_limit(policy)

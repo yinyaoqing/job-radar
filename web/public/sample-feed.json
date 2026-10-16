@@ -422,6 +422,7 @@
     "countries": [],
     "regions": []
    },
+   "ats_country": null,
    "url": "https://example.com/jobs/northwind-labs/00",
    "ats": "ashby",
    "published_at": null,
@@ -450,7 +451,8 @@
     "React",
     "Next.js"
    ],
-   "no_ai_policy": false
+   "no_ai_policy": false,
+   "company_hint": null
   },
   {
    "id": "ashby:lumen-health:sample-06",
@@ -469,6 +471,7 @@
     ],
     "regions": []
    },
+   "ats_country": null,
    "url": "https://example.com/jobs/lumen-health/06",
    "ats": "ashby",
    "published_at": null,
@@ -498,7 +501,8 @@
    "employment": "full_time",
    "salary": null,
    "skills": [],
-   "no_ai_policy": false
+   "no_ai_policy": false,
+   "company_hint": null
   },
   {
    "id": "ashby:quillfeather:sample-12",
@@ -518,6 +522,7 @@
      "ASIA"
     ]
    },
+   "ats_country": null,
    "url": "https://example.com/jobs/quillfeather/12",
    "ats": "ashby",
    "published_at": null,
@@ -532,7 +537,8 @@
    "skills": [
     "B2B SaaS"
    ],
-   "no_ai_policy": false
+   "no_ai_policy": false,
+   "company_hint": null
   },
   {
    "id": "ashby:northwind-labs:sample-01",
@@ -545,6 +551,7 @@
    "location": "Remote",
    "work_mode": "remote",
    "field_policy": null,
+   "ats_country": null,
    "url": "https://example.com/jobs/northwind-labs/01",
    "ats": "ashby",
    "published_at": null,
@@ -569,7 +576,8 @@
     "Figma",
     "Design systems"
    ],
-   "no_ai_policy": false
+   "no_ai_policy": false,
+   "company_hint": null
   },
   {
    "id": "ashby:lumen-health:sample-07",
@@ -582,6 +590,7 @@
    "location": "Remote",
    "work_mode": "remote",
    "field_policy": null,
+   "ats_country": null,
    "url": "https://example.com/jobs/lumen-health/07",
    "ats": "ashby",
    "published_at": null,
@@ -594,7 +603,8 @@
    "employment": "full_time",
    "salary": null,
    "skills": [],
-   "no_ai_policy": false
+   "no_ai_policy": false,
+   "company_hint": null
   },
   {
    "id": "ashby:quillfeather:sample-13",
@@ -613,6 +623,7 @@
      "EUROPE"
     ]
    },
+   "ats_country": null,
    "url": "https://example.com/jobs/quillfeather/13",
    "ats": "ashby",
    "published_at": null,
@@ -634,7 +645,8 @@
    "employment": "full_time",
    "salary": null,
    "skills": [],
-   "no_ai_policy": false
+   "no_ai_policy": false,
+   "company_hint": null
   },
   {
    "id": "ashby:blue-harbor:sample-02",
@@ -653,6 +665,7 @@
     ],
     "regions": []
    },
+   "ats_country": null,
    "url": "https://example.com/jobs/blue-harbor/02",
    "ats": "ashby",
    "published_at": null,
@@ -677,7 +690,8 @@
     "Go",
     "PostgreSQL"
    ],
-   "no_ai_policy": false
+   "no_ai_policy": false,
+   "company_hint": null
   },
   {
    "id": "ashby:orbit-commerce:sample-08",
@@ -690,6 +704,7 @@
    "location": "Remote",
    "work_mode": "remote",
    "field_policy": null,
+   "ats_country": null,
    "url": "https://example.com/jobs/orbit-commerce/08",
    "ats": "ashby",
    "published_at": null,
@@ -714,7 +729,8 @@
     "period": "year"
    },
    "skills": [],
-   "no_ai_policy": false
+   "no_ai_policy": false,
+   "company_hint": null
   },
   {
    "id": "ashby:blue-harbor:sample-03",
@@ -733,6 +749,7 @@
      "EMEA"
     ]
    },
+   "ats_country": null,
    "url": "https://example.com/jobs/blue-harbor/03",
    "ats": "ashby",
    "published_at": null,
@@ -754,7 +771,8 @@
    "employment": "full_time",
    "salary": null,
    "skills": [],
-   "no_ai_policy": false
+   "no_ai_policy": false,
+   "company_hint": null
   },
   {
    "id": "ashby:orbit-commerce:sample-09",
@@ -773,6 +791,7 @@
     ],
     "regions": []
    },
+   "ats_country": null,
    "url": "https://example.com/jobs/orbit-commerce/09",
    "ats": "ashby",
    "published_at": null,
@@ -794,7 +813,8 @@
    "employment": "full_time",
    "salary": null,
    "skills": [],
-   "no_ai_policy": false
+   "no_ai_policy": false,
+   "company_hint": null
   },
   {
    "id": "ashby:kestrel-data:sample-04",
@@ -807,6 +827,7 @@
    "location": "Remote",
    "work_mode": "remote",
    "field_policy": null,
+   "ats_country": null,
    "url": "https://example.com/jobs/kestrel-data/04",
    "ats": "ashby",
    "published_at": null,
@@ -832,7 +853,8 @@
     "SQL",
     "dbt"
    ],
-   "no_ai_policy": false
+   "no_ai_policy": false,
+   "company_hint": null
   },
   {
    "id": "ashby:tidewater:sample-10",
@@ -851,6 +873,7 @@
     ],
     "regions": []
    },
+   "ats_country": null,
    "url": "https://example.com/jobs/tidewater/10",
    "ats": "ashby",
    "published_at": null,
@@ -872,7 +895,8 @@
    "employment": "full_time",
    "salary": null,
    "skills": [],
-   "no_ai_policy": true
+   "no_ai_policy": true,
+   "company_hint": null
   },
   {
    "id": "ashby:kestrel-data:sample-05",
@@ -885,6 +909,7 @@
    "location": "Remote",
    "work_mode": "remote",
    "field_policy": null,
+   "ats_country": null,
    "url": "https://example.com/jobs/kestrel-data/05",
    "ats": "ashby",
    "published_at": null,
@@ -907,7 +932,8 @@
     "Python",
     "PyTorch"
    ],
-   "no_ai_policy": false
+   "no_ai_policy": false,
+   "company_hint": null
   },
   {
    "id": "ashby:tidewater:sample-11",
@@ -920,12 +946,14 @@
    "location": "Remote",
    "work_mode": "remote",
    "field_policy": null,
+   "ats_country": null,
    "url": "https://example.com/jobs/tidewater/11",
    "ats": "ashby",
    "published_at": null,
    "first_seen_at": "2026-10-10T13:00:00+00:00",
    "last_verified_at": "2026-10-16T00:00:00+00:00",
-   "extracted": false
+   "extracted": false,
+   "company_hint": null
   }
  ]
 }

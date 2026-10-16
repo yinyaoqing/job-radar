@@ -58,6 +58,9 @@ class Posting:
     # remote | hybrid | onsite | unknown (classify.WORK_MODES)
     work_mode: str = "unknown"
     department: str | None = None
+    # The ATS's structured country. Often a company-wide default, so it is only a
+    # fallback when neither the JD nor the location field says where.
+    ats_country: str | None = None
     published_at: datetime | None = None
     description: str | None = None
     raw: dict[str, Any] = field(default_factory=dict, repr=False)
@@ -95,6 +98,19 @@ class Adapter(ABC):
         if resp.status_code != 200:
             raise AdapterError(f"{self.name}: GET {url} -> HTTP {resp.status_code}")
         return resp.json()
+
+
+def country_code(value: str | None) -> str | None:
+    """ISO code for an ATS's structured country ("US", "United States")."""
+    from ..eligibility import policy_from_location_text
+
+    if not value:
+        return None
+    if len(value) == 2 and value.isalpha():
+        return value.upper()
+    named = policy_from_location_text(value) or {}
+    countries = named.get("countries") or []
+    return countries[0] if len(countries) == 1 else None
 
 
 def parse_iso(value: str | None) -> datetime | None:

@@ -6,6 +6,7 @@
       "work_mode": "remote",
       "location": "Remote",
       "field_policy": null,
+      "ats_country": null,
       "extracted": true,
       "location_policy": {
         "type": "worldwide",
@@ -25,6 +26,7 @@
       "work_mode": "remote",
       "location": "Remote",
       "field_policy": null,
+      "ats_country": null,
       "extracted": true,
       "location_policy": {
         "type": "worldwide",
@@ -44,6 +46,7 @@
       "work_mode": "remote",
       "location": "Remote",
       "field_policy": null,
+      "ats_country": null,
       "extracted": true,
       "location_policy": {
         "type": "worldwide",
@@ -67,6 +70,7 @@
         "countries": [],
         "regions": []
       },
+      "ats_country": null,
       "extracted": true,
       "location_policy": {
         "type": "worldwide",
@@ -86,6 +90,7 @@
       "work_mode": "remote",
       "location": "Remote",
       "field_policy": null,
+      "ats_country": null,
       "extracted": true,
       "location_policy": {
         "type": "country_list",
@@ -107,6 +112,7 @@
       "work_mode": "remote",
       "location": "Remote",
       "field_policy": null,
+      "ats_country": null,
       "extracted": true,
       "location_policy": {
         "type": "country_list",
@@ -134,6 +140,7 @@
         ],
         "regions": []
       },
+      "ats_country": null,
       "extracted": true,
       "location_policy": null,
       "hard_blocks": []
@@ -146,6 +153,7 @@
       "work_mode": "remote",
       "location": "Remote",
       "field_policy": null,
+      "ats_country": null,
       "extracted": true,
       "location_policy": {
         "type": "country_list",
@@ -168,6 +176,7 @@
       "work_mode": "remote",
       "location": "Remote",
       "field_policy": null,
+      "ats_country": null,
       "extracted": true,
       "location_policy": {
         "type": "country_list",
@@ -192,6 +201,7 @@
       "work_mode": "remote",
       "location": "Remote",
       "field_policy": null,
+      "ats_country": null,
       "extracted": true,
       "location_policy": {
         "type": "country_list",
@@ -223,6 +233,7 @@
           "EUROPE"
         ]
       },
+      "ats_country": null,
       "extracted": true,
       "location_policy": {
         "type": "region_list",
@@ -250,6 +261,7 @@
           "EMEA"
         ]
       },
+      "ats_country": null,
       "extracted": true,
       "location_policy": {
         "type": "region_list",
@@ -277,6 +289,7 @@
         ],
         "regions": []
       },
+      "ats_country": null,
       "extracted": true,
       "location_policy": {
         "type": "country_list",
@@ -304,6 +317,7 @@
           "LATAM"
         ]
       },
+      "ats_country": null,
       "extracted": true,
       "location_policy": {
         "type": "region_list",
@@ -325,6 +339,7 @@
       "work_mode": "remote",
       "location": "Remote",
       "field_policy": null,
+      "ats_country": null,
       "extracted": true,
       "location_policy": {
         "type": "region_list",
@@ -352,6 +367,7 @@
           "APAC"
         ]
       },
+      "ats_country": null,
       "extracted": true,
       "location_policy": {
         "type": "region_list",
@@ -373,6 +389,7 @@
       "work_mode": "remote",
       "location": "Remote",
       "field_policy": null,
+      "ats_country": null,
       "extracted": true,
       "location_policy": {
         "type": "region_list",
@@ -400,6 +417,7 @@
         ],
         "regions": []
       },
+      "ats_country": null,
       "extracted": true,
       "location_policy": {
         "type": "country_list",
@@ -421,6 +439,7 @@
       "work_mode": "remote",
       "location": "Remote",
       "field_policy": null,
+      "ats_country": null,
       "extracted": true,
       "location_policy": {
         "type": "timezone_window",
@@ -443,6 +462,7 @@
       "work_mode": "remote",
       "location": "Remote",
       "field_policy": null,
+      "ats_country": null,
       "extracted": true,
       "location_policy": {
         "type": "timezone_window",
@@ -465,6 +485,7 @@
       "work_mode": "remote",
       "location": "Remote",
       "field_policy": null,
+      "ats_country": null,
       "extracted": true,
       "location_policy": {
         "type": "timezone_window",
@@ -487,6 +508,7 @@
       "work_mode": "remote",
       "location": "Remote",
       "field_policy": null,
+      "ats_country": null,
       "extracted": true,
       "location_policy": {
         "type": "timezone_window",
@@ -515,6 +537,7 @@
           "APAC"
         ]
       },
+      "ats_country": null,
       "extracted": true,
       "location_policy": {
         "type": "region_list",
@@ -539,6 +562,7 @@
       "work_mode": "remote",
       "location": "Remote",
       "field_policy": null,
+      "ats_country": null,
       "extracted": true,
       "location_policy": {
         "type": "worldwide",
@@ -558,6 +582,7 @@
       "work_mode": "remote",
       "location": "Remote",
       "field_policy": null,
+      "ats_country": null,
       "extracted": true,
       "location_policy": {
         "type": "worldwide",
@@ -577,6 +602,7 @@
       "work_mode": "remote",
       "location": "Remote",
       "field_policy": null,
+      "ats_country": null,
       "extracted": true,
       "location_policy": {
         "type": "worldwide",
@@ -596,6 +622,7 @@
       "work_mode": "remote",
       "location": "Remote",
       "field_policy": null,
+      "ats_country": null,
       "extracted": true,
       "location_policy": {
         "type": "worldwide",
@@ -615,6 +642,7 @@
       "work_mode": "remote",
       "location": "Remote",
       "field_policy": null,
+      "ats_country": null,
       "extracted": true,
       "location_policy": {
         "type": "worldwide",
@@ -640,6 +668,7 @@
         ],
         "regions": []
       },
+      "ats_country": null,
       "extracted": true,
       "location_policy": {
         "type": "worldwide",
@@ -665,6 +694,7 @@
           "APAC"
         ]
       },
+      "ats_country": null,
       "extracted": true,
       "location_policy": {
         "type": "country_list",
@@ -690,6 +720,7 @@
         "countries": [],
         "regions": []
       },
+      "ats_country": null,
       "extracted": true,
       "location_policy": {
         "type": "region_list",
@@ -715,6 +746,7 @@
         "countries": [],
         "regions": []
       },
+      "ats_country": null,
       "extracted": true,
       "location_policy": {
         "type": "worldwide",
@@ -737,6 +769,7 @@
       "work_mode": "remote",
       "location": "Remote",
       "field_policy": null,
+      "ats_country": null,
       "extracted": true,
       "location_policy": null,
       "hard_blocks": []
@@ -749,6 +782,7 @@
       "work_mode": "remote",
       "location": "",
       "field_policy": null,
+      "ats_country": null,
       "extracted": true,
       "location_policy": null,
       "hard_blocks": []
@@ -761,6 +795,7 @@
       "work_mode": "hybrid",
       "location": "Berlin (Hybrid)",
       "field_policy": null,
+      "ats_country": null,
       "extracted": true,
       "location_policy": {
         "type": "onsite_hybrid",
@@ -782,6 +817,7 @@
       "work_mode": "onsite",
       "location": "Taipei",
       "field_policy": null,
+      "ats_country": null,
       "extracted": true,
       "location_policy": {
         "type": "onsite_hybrid",
@@ -803,6 +839,7 @@
       "work_mode": "remote",
       "location": "Remote",
       "field_policy": null,
+      "ats_country": null,
       "extracted": true,
       "location_policy": {
         "type": "country_list",
@@ -830,6 +867,7 @@
       "work_mode": "remote",
       "location": "Remote",
       "field_policy": null,
+      "ats_country": null,
       "extracted": true,
       "location_policy": {
         "type": "country_list",
@@ -865,6 +903,7 @@
         ],
         "regions": []
       },
+      "ats_country": null,
       "extracted": true,
       "location_policy": null,
       "hard_blocks": []
@@ -884,6 +923,7 @@
           "ASIA"
         ]
       },
+      "ats_country": null,
       "extracted": true,
       "location_policy": null,
       "hard_blocks": []
@@ -902,6 +942,7 @@
         ],
         "regions": []
       },
+      "ats_country": null,
       "extracted": true,
       "location_policy": {
         "type": "country_list",
@@ -929,6 +970,7 @@
           "EEA"
         ]
       },
+      "ats_country": null,
       "extracted": true,
       "location_policy": null,
       "hard_blocks": []
@@ -947,6 +989,7 @@
         ],
         "regions": []
       },
+      "ats_country": null,
       "extracted": true,
       "location_policy": {
         "type": "country_list",
@@ -975,6 +1018,7 @@
         ],
         "regions": []
       },
+      "ats_country": null,
       "extracted": true,
       "location_policy": null,
       "hard_blocks": []
@@ -993,6 +1037,7 @@
         ],
         "regions": []
       },
+      "ats_country": null,
       "extracted": true,
       "location_policy": {
         "type": "country_list",
@@ -1017,6 +1062,7 @@
       "work_mode": "remote",
       "location": "Remote",
       "field_policy": null,
+      "ats_country": null,
       "extracted": true,
       "location_policy": {
         "type": "country_list",
@@ -1041,6 +1087,7 @@
       "work_mode": "remote",
       "location": "Remote",
       "field_policy": null,
+      "ats_country": null,
       "extracted": true,
       "location_policy": {
         "type": "worldwide",
@@ -1060,6 +1107,7 @@
       "work_mode": "remote",
       "location": "Remote",
       "field_policy": null,
+      "ats_country": null,
       "extracted": true,
       "location_policy": {
         "type": "worldwide",
@@ -1069,6 +1117,59 @@
         "required_overlap_hours": 8,
         "overlap_reference_utc": -6
       },
+      "hard_blocks": []
+    }
+  },
+  {
+    "id": "weekly-overlap-eastern",
+    "expected": "blocked",
+    "posting": {
+      "work_mode": "remote",
+      "location": "Remote",
+      "field_policy": null,
+      "ats_country": null,
+      "extracted": true,
+      "location_policy": {
+        "type": "worldwide",
+        "countries": [],
+        "regions": [],
+        "timezone_window_utc": null,
+        "required_overlap_hours": 4,
+        "overlap_reference_utc": -5
+      },
+      "hard_blocks": []
+    }
+  },
+  {
+    "id": "preference-is-not-a-limit",
+    "expected": "eligible",
+    "posting": {
+      "work_mode": "remote",
+      "location": "Remote",
+      "field_policy": null,
+      "ats_country": null,
+      "extracted": true,
+      "location_policy": {
+        "type": "worldwide",
+        "countries": [],
+        "regions": [],
+        "timezone_window_utc": null,
+        "required_overlap_hours": null,
+        "overlap_reference_utc": null
+      },
+      "hard_blocks": []
+    }
+  },
+  {
+    "id": "silent-jd-ats-country-us",
+    "expected": "blocked",
+    "posting": {
+      "work_mode": "remote",
+      "location": "Remote",
+      "field_policy": null,
+      "ats_country": "US",
+      "extracted": true,
+      "location_policy": null,
       "hard_blocks": []
     }
   }

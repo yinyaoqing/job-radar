@@ -43,6 +43,8 @@ export interface Posting {
   location: string | null;
   work_mode: WorkMode;
   field_policy: LocationPolicy | null;
+  /** The ATS's structured country; a fallback only (often a company-wide default). */
+  ats_country?: string | null;
   url: string;
   ats: string;
   published_at: string | null;
@@ -56,6 +58,8 @@ export interface Posting {
   salary?: Salary | null;
   skills?: string[];
   no_ai_policy?: boolean;
+  /** Where the company's other postings say candidates must be, when they agree. */
+  company_hint?: { places: string[]; postings: number } | null;
 }
 
 export interface Category {

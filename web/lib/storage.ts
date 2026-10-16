@@ -15,10 +15,14 @@ export interface SavedPosting {
   markedAt: string;
 }
 
+/** The visitor's own answer for a posting the rules could not decide. */
+export type Override = "eligible" | "blocked";
+
 const KEYS = {
   candidate: "job-radar:candidate",
   marks: "job-radar:marks",
   lastVisit: "job-radar:last-visit",
+  overrides: "job-radar:overrides",
 } as const;
 
 function read<T>(key: string, fallback: T): T {
@@ -52,6 +56,14 @@ export function loadMarks(): Record<string, SavedPosting> {
 
 export function saveMarks(marks: Record<string, SavedPosting>): void {
   write(KEYS.marks, marks);
+}
+
+export function loadOverrides(): Record<string, Override> {
+  return read<Record<string, Override>>(KEYS.overrides, {});
+}
+
+export function saveOverrides(overrides: Record<string, Override>): void {
+  write(KEYS.overrides, overrides);
 }
 
 /** The previous visit's time (for "new since last visit"), then records this one. */
