@@ -222,3 +222,14 @@ def test_structured_country_is_kept_apart_from_the_location():
     }
     lever = LeverAdapter(client(lambda r: httpx.Response(200, json=lever_job))).get("acme", "x")
     assert (lever.location, lever.ats_country) == ("Remote", "US")
+
+
+def test_rate_limited_requests_wait_and_retry(monkeypatch):
+    from job_radar.adapters import base
+
+    waits: list[float] = []
+    monkeypatch.setattr(base.time, "sleep", waits.append)
+    responses = iter([httpx.Response(429, headers={"retry-after": "2"}), httpx.Response(404)])
+    adapter = GreenhouseAdapter(client(lambda r: next(responses)))
+    assert adapter.get("acme", "1") is None
+    assert waits == [2.0]

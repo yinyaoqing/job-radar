@@ -33,6 +33,11 @@ ATTRIBUTION = [
         "used_for": "company discovery",
     },
     {
+        "name": "We Work Remotely",
+        "url": "https://weworkremotely.com/",
+        "used_for": "company discovery",
+    },
+    {
         "name": "Hacker News: Ask HN: Who is hiring?",
         "url": "https://news.ycombinator.com/submitted?id=whoishiring",
         "used_for": "company discovery",

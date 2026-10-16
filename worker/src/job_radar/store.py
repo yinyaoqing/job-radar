@@ -77,6 +77,12 @@ CREATE TABLE IF NOT EXISTS extractions (
     created_at     TEXT NOT NULL,
     UNIQUE (snapshot_id, schema_version)
 );
+CREATE TABLE IF NOT EXISTS discovery_misses (
+    source     TEXT NOT NULL,
+    name       TEXT NOT NULL,
+    checked_at TEXT NOT NULL,
+    PRIMARY KEY (source, name)
+);
 CREATE TABLE IF NOT EXISTS runs (
     id          INTEGER PRIMARY KEY,
     started_at  TEXT NOT NULL,
@@ -195,6 +201,28 @@ class Store:
                 (error[:500], company_id),
             )
         self.db.commit()
+
+    def recent_miss(self, source: str, name: str, since: datetime) -> bool:
+        """A name looked up recently without finding a board: skip it until ``since``."""
+        row = self.db.execute(
+            "SELECT checked_at FROM discovery_misses WHERE source = ? AND name = ?",
+            (source, name.lower()),
+        ).fetchone()
+        return bool(row) and row["checked_at"] >= since.isoformat()
+
+    def record_miss(self, source: str, name: str, now: datetime) -> None:
+        self.db.execute(
+            "INSERT OR REPLACE INTO discovery_misses (source, name, checked_at) VALUES (?, ?, ?)",
+            (source, name.lower(), now.isoformat()),
+        )
+        self.db.commit()
+
+    def has_company_named(self, name: str) -> bool:
+        return bool(
+            self.db.execute(
+                "SELECT 1 FROM companies WHERE lower(name) = ?", (name.lower(),)
+            ).fetchone()
+        )
 
     def reset_failures(self) -> int:
         cur = self.db.execute("UPDATE companies SET fail_count = 0 WHERE fail_count > 0")

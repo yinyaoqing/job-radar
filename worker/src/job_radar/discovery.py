@@ -41,10 +41,14 @@ ATS_URL_PATTERNS = [
     ("lever", re.compile(r"^https?://jobs\.lever\.co/([^/?#]+)", re.I)),
     ("recruitee", re.compile(r"^https?://([a-z0-9-]+)\.recruitee\.com", re.I)),
     ("workable", re.compile(r"^https?://apply\.workable\.com/(?!j/|api/)([^/?#]+)", re.I)),
+    (
+        "smartrecruiters",
+        re.compile(r"^https?://(?:jobs|careers)\.smartrecruiters\.com/([^/?#]+)", re.I),
+    ),
     ("workable", re.compile(r"^https?://(?!apply\.|www\.)([a-z0-9-]+)\.workable\.com", re.I)),
 ]
 # Ashby boards are case-sensitive and usually match the slug; try cheaper hosts first.
-PROBE_ORDER = ["greenhouse", "lever", "ashby", "recruitee", "workable"]
+PROBE_ORDER = ["greenhouse", "lever", "ashby", "recruitee", "workable", "smartrecruiters"]
 
 
 @dataclass(slots=True)
@@ -185,3 +189,133 @@ def harvest_hn(client: httpx.Client | None = None, months: int = 1) -> list[Hiri
                 if hit and hit not in leads:
                     leads[hit] = HiringLead(company or hit[1], *hit, url)
     return list(leads.values())
+
+
+# --- We Work Remotely --------------------------------------------------------
+#
+# The RSS feeds may be used with attribution (weworkremotely.com/remote-job-rss-feed).
+# Items carry no ATS links, only "Company: Title", so the company is looked up by name
+# and accepted only when its board lists a posting with a matching title: a generic
+# name ("Engine", "Current") must not attach another company's board.
+
+WWR_SOURCE = "wwr"
+WWR_FEEDS = [
+    "https://weworkremotely.com/remote-jobs.rss",
+    *(
+        f"https://weworkremotely.com/categories/remote-{c}-jobs.rss"
+        for c in (
+            "customer-support",
+            "product",
+            "full-stack-programming",
+            "back-end-programming",
+            "front-end-programming",
+            "sales-and-marketing",
+            "management-and-finance",
+            "design",
+            "devops-sysadmin",
+        )
+    ),
+    "https://weworkremotely.com/categories/all-other-remote-jobs.rss",
+]
+
+
+@dataclass(slots=True)
+class NamedLead:
+    company: str
+    titles: list[str]
+
+
+def parse_wwr_feed(xml: str) -> list[tuple[str, str]]:
+    """(company, title) per item; WWR titles read "Company: Title"."""
+    out = []
+    for raw in re.findall(r"<item>.*?<title>(.*?)</title>", xml, re.S):
+        text = html.unescape(re.sub(r"<!\[CDATA\[|\]\]>", "", raw)).strip()
+        if ":" in text:
+            company, title = text.split(":", 1)
+            out.append((company.strip(), title.strip()))
+    return out
+
+
+def fetch_wwr(client: httpx.Client | None = None) -> list[NamedLead]:
+    client = client or httpx.Client(
+        headers={"User-Agent": USER_AGENT}, timeout=60, follow_redirects=True
+    )
+    leads: dict[str, NamedLead] = {}
+    for url in WWR_FEEDS:
+        try:
+            resp = client.get(url)
+            resp.raise_for_status()
+        except httpx.HTTPError:
+            continue
+        for company, title in parse_wwr_feed(resp.text):
+            lead = leads.setdefault(company.lower(), NamedLead(company, []))
+            if title not in lead.titles:
+                lead.titles.append(title)
+    return list(leads.values())
+
+
+def name_slugs(name: str) -> list[str]:
+    """Board names companies usually pick: "Customer.io" -> customerio, customer-io."""
+    base = re.sub(r"\b(inc|llc|ltd|gmbh|co)\b\.?", "", name.lower())
+    base = re.sub(r"[^a-z0-9 ]", "", base).strip()
+    words = base.split()
+    slugs = ["".join(words), "-".join(words), words[0] if words else ""]
+    return list(dict.fromkeys(s for s in slugs if len(s) > 1))
+
+
+def _title_key(title: str) -> str:
+    return re.sub(r"[^a-z0-9]+", " ", title.lower()).strip()
+
+
+def titles_match(wanted: list[str], board_titles: list[str]) -> bool:
+    from difflib import SequenceMatcher
+
+    keys = [_title_key(t) for t in board_titles]
+    for w in map(_title_key, wanted):
+        for k in keys:
+            if w == k or SequenceMatcher(None, w, k).ratio() >= 0.85:
+                return True
+    return False
+
+
+def find_board(lead: NamedLead, adapters: Mapping[str, Adapter]) -> tuple[str, str] | None:
+    """The supported ATS board for a company known only by name, verified by a matching
+    posting title. Costs up to one request per ATS per slug variant."""
+    for slug in name_slugs(lead.company):
+        for ats in PROBE_ORDER:
+            try:
+                postings = adapters[ats].list(slug)
+            except (AdapterError, httpx.HTTPError, ValueError):
+                continue
+            if titles_match(lead.titles, [p.title for p in postings]):
+                return ats, slug
+    return None
+
+
+MISS_RETRY_DAYS = 30
+
+
+def import_named_leads(
+    store, leads: list[NamedLead], adapters, *, source: str, now
+) -> dict[str, int]:
+    """Look up each named company once; misses wait MISS_RETRY_DAYS before another try."""
+    from datetime import timedelta
+
+    counts = {"leads": len(leads), "known": 0, "skipped_recent_miss": 0, "added": 0, "missed": 0}
+    retry_after = now - timedelta(days=MISS_RETRY_DAYS)
+    for lead in leads:
+        if store.has_company_named(lead.company):
+            counts["known"] += 1
+            continue
+        if store.recent_miss(source, lead.company, retry_after):
+            counts["skipped_recent_miss"] += 1
+            continue
+        hit = find_board(lead, adapters)
+        if hit is None:
+            store.record_miss(source, lead.company, now)
+            counts["missed"] += 1
+            continue
+        _, inserted = store.add_company(lead.company, *hit, now=now, source=source)
+        counts["added"] += inserted
+        counts["known"] += not inserted
+    return counts

@@ -180,6 +180,7 @@ def test_probe_returns_first_board_that_exists():
         "ashby": Missing({}),
         "recruitee": Missing({}),
         "workable": Missing({}),
+        "smartrecruiters": Missing({}),
     }
     assert probe("acme", adapters) == ("lever", "acme")
     assert probe("nobody", {k: Missing({}) for k in adapters}) is None

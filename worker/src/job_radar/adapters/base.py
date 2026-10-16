@@ -45,6 +45,8 @@ class HostThrottle:
 
 # Shared by every default client, so two adapters never hammer the same host together.
 THROTTLE = HostThrottle()
+RATE_LIMIT_RETRIES = 3
+RATE_LIMIT_MAX_WAIT = 30.0
 
 
 @dataclass(slots=True)
@@ -90,9 +92,22 @@ class Adapter(ABC):
     def is_open(self, org: str, job_id: str) -> bool:
         return self.get(org, job_id) is not None
 
+    def _send(self, method: str, url: str, **kwargs: Any) -> httpx.Response:
+        """One request; on 429 waits as the server asks (capped) and retries."""
+        for attempt in range(RATE_LIMIT_RETRIES + 1):
+            resp = self._client.request(method, url, **kwargs)
+            if resp.status_code != 429 or attempt == RATE_LIMIT_RETRIES:
+                return resp
+            try:
+                wait = float(resp.headers.get("retry-after", ""))
+            except ValueError:
+                wait = 5.0 * (attempt + 1)
+            time.sleep(min(max(wait, 1.0), RATE_LIMIT_MAX_WAIT))
+        return resp
+
     def _get_json(self, url: str, **kwargs: Any) -> Any | None:
         """GET a JSON document; ``None`` on 404, ``AdapterError`` on anything else unexpected."""
-        resp = self._client.get(url, **kwargs)
+        resp = self._send("GET", url, **kwargs)
         if resp.status_code == 404:
             return None
         if resp.status_code != 200:

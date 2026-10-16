@@ -6,6 +6,7 @@ job-radar check <ats> <org> <job_id> # is this posting still open?
 job-radar companies add <ats> <org> [--name NAME]
 job-radar companies import-remoteintech [--probe] [--region worldwide ...]
 job-radar companies import-hn [--months N]
+job-radar companies import-wwr [--retry-misses]
 job-radar companies list
 job-radar crawl                      # fetch every watched board, open/close postings
 job-radar extract [--limit N] [--max-cost USD]  # LLM extraction of new remote postings
@@ -65,6 +66,12 @@ def main(argv: list[str] | None = None) -> int:
     )
     p_hn = comp.add_parser("import-hn", help="import boards linked from HN 'Who is hiring?'")
     p_hn.add_argument("--months", type=int, default=1, help="how many monthly threads")
+    p_wwr = comp.add_parser(
+        "import-wwr", help="find ATS boards for companies posting on We Work Remotely"
+    )
+    p_wwr.add_argument(
+        "--retry-misses", action="store_true", help="look up names that missed recently again"
+    )
     comp.add_parser("list", help="show watched companies with open/remote counts")
     comp.add_parser("reset-failures", help="crawl boards skipped after repeated failures again")
 
@@ -214,6 +221,16 @@ def _companies_command(args: argparse.Namespace, store) -> int:
         return 0
     if args.action == "reset-failures":
         print(f"{store.reset_failures()} boards back in the crawl")
+        return 0
+    if args.action == "import-wwr":
+        from .discovery import WWR_SOURCE, fetch_wwr, import_named_leads
+
+        if args.retry_misses:
+            store.db.execute("DELETE FROM discovery_misses WHERE source = ?", (WWR_SOURCE,))
+            store.db.commit()
+        adapters = {ats: cls() for ats, cls in ADAPTERS.items()}
+        counts = import_named_leads(store, fetch_wwr(), adapters, source=WWR_SOURCE, now=_now())
+        print(", ".join(f"{k} {v}" for k, v in counts.items()))
         return 0
     if args.action == "import-hn":
         from .discovery import HN_SOURCE, harvest_hn

@@ -41,7 +41,8 @@ class AshbyAdapter(Adapter):
         return [self._from_board(org, job) for job in data.get("jobs", []) if job.get("isListed")]
 
     def get(self, org: str, job_id: str) -> Posting | None:
-        resp = self._client.post(
+        resp = self._send(
+            "POST",
             GRAPHQL_URL,
             json={
                 "operationName": "ApiJobPosting",

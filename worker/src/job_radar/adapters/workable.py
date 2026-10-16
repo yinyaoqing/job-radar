@@ -25,7 +25,7 @@ class WorkableAdapter(Adapter):
         body: dict[str, Any] = {"query": "", "location": [], "department": [], "worktype": []}
         postings: list[Posting] = []
         for _ in range(MAX_PAGES):
-            resp = self._client.post(LIST_URL.format(org=org), json=body)
+            resp = self._send("POST", LIST_URL.format(org=org), json=body)
             if resp.status_code == 404:
                 raise AdapterError(f"workable: no account named {org!r}")
             if resp.status_code != 200:

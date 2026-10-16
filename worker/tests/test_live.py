@@ -41,3 +41,9 @@ def test_recruitee_board_lists_jobs():
 
 def test_workable_board_lists_jobs():
     assert len(WorkableAdapter().list("seeq")) > 0
+
+
+def test_smartrecruiters_board_lists_jobs():
+    from job_radar.adapters import SmartRecruitersAdapter
+
+    assert len(SmartRecruitersAdapter().list("BoschGroup")) > 0
