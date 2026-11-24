@@ -1,0 +1,54 @@
+# Phrase-book format, filled with the same FICTIONAL person as example-evidence.yaml.
+# Keep your real one in private/phrases.yaml (gitignored).
+#
+# evidence.yaml holds the facts; this file holds the wording. One finished sentence per
+# entry, citing the evidence ids it states. A number therefore lives in exactly one
+# phrase, so correcting it rebuilds every CV that uses it.
+#
+# A phrase renders as:  label + separator + text
+# where the separator is "：" for zh and ": " for en. A posting's cv.yaml may override
+# the label (give "" to drop it) and append a `tail` in place of the final full stop.
+# When the same facts need a visibly shorter wording to fit the page, store that as its
+# own entry — by convention `<id>.short`.
+#
+# Ids are free-form. The convention used here: the primary evidence id, plus
+# `+<last segment>` of each extra id it cites, and `.sum` for a summary-line wording.
+
+en:
+  e1:
+    cites: [e1]
+    label: Performance
+    text: "Rebuilt the checkout flow in React and TypeScript, cutting page load from 4.1s to 1.6s."
+  e1.short:
+    cites: [e1]
+    text: "Rebuilt checkout in React and TypeScript (4.1s to 1.6s)."
+  e2:
+    cites: [e2]
+    text: "Led the migration of 120 pages from a legacy Vue 2 app to Next.js."
+  e3+e6:
+    cites: [e3, e6]
+    label: Design systems
+    text: "Built a Storybook component library used by 4 product teams, and maintain an open-source date picker with 2k GitHub stars."
+  e4:
+    cites: [e4]
+    text: "Wrote Node.js APIs over PostgreSQL for a booking product with 30k monthly users."
+  e5:
+    cites: [e5]
+    label: Testing
+    text: "Added Playwright end-to-end tests to CI, reaching 85% coverage of critical paths."
+  e1+e2.sum:
+    cites: [e1, e2]
+    text: "Eight years of front-end work: a React and TypeScript checkout rebuild (4.1s to 1.6s) and a 120-page migration from Vue 2 to Next.js."
+
+zh:
+  e1:
+    cites: [e1]
+    label: 效能
+    text: "以 React 與 TypeScript 重寫結帳流程，頁面載入由 4.1 秒降到 1.6 秒。"
+  e2:
+    cites: [e2]
+    text: "主導 120 個頁面從舊的 Vue 2 應用遷移到 Next.js。"
+  e5:
+    cites: [e5]
+    label: 測試
+    text: "為 CI 補上 Playwright 端對端測試，關鍵路徑覆蓋率達 85%。"

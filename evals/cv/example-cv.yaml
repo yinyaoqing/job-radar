@@ -1,0 +1,44 @@
+# Per-posting config format, for the FICTIONAL person in example-evidence.yaml.
+# Keep your real ones next to each posting's notes, e.g. private/cvs/<slug>/cv.yaml.
+#
+# This file holds only the tailoring: which phrases, in what order, under which role
+# headings, with which type-area settings. The facts are in evidence.yaml and the
+# wording is in phrases.yaml, so a posting is re-pitched by reordering ids here —
+# never by retyping a claim.
+#
+# Build:  cd worker && uv run python ../private/build_cv.py <slug>
+
+lang: en # en | zh — picks the phrase language, the section headings and the separator
+out: cv_en # output basename: <out>.html and <out>.pdf beside this file
+page_target: 2 # lint fails if the PDF runs longer
+
+profile: # overrides on top of evidence.yaml's `profile`
+  headline: "Senior Frontend Engineer — React, performance"
+
+layout: # omit entirely to keep cv.py's defaults
+  page_margin: "12mm 13mm"
+  font: 9.8
+  line: 1.36
+  h2_margin: "6pt 0 2pt"
+  h3_size: "9.7pt"
+  h3_margin: "5pt 0 2pt"
+
+summary:
+  - e1+e2.sum
+
+sections:
+  - role: "Frontend Engineer, Example Commerce (2022–2026)"
+    bullets:
+      - e1 # a bare id uses the phrase's own label
+      - { id: e2, label: Migrations } # override the label; use "" to drop it
+      - e3+e6
+  - role: "Software Engineer, Example Studio (2019–2022)"
+    bullets:
+      - { id: e4, tail: " — on call for it as well." } # replaces the final full stop
+      - e5
+
+skills: # a flat list renders as one joined line; groups render as labelled rows
+  - group: Front end
+    items: [React, "Next.js", TypeScript, Storybook]
+  - group: Back end and testing
+    items: ["Node.js", PostgreSQL, Playwright]
