@@ -5,6 +5,7 @@ Spec: `docs/spec.md` is a de-personalised public copy of the private Claude Doc 
 ## Rules
 
 - `private/` holds the owner's real job-search data (shortlists, application notes). It is gitignored. Read it for context, never copy its contents into tracked files, fixtures or the public demo.
+- **This repo is public.** Commit messages, branch names and PR text are published too, so they must not name an employer, client, private repo or posting from `private/`. Describe the change, not whose data it was tested on.
 - The ATS is the source of truth for "is this posting open". Aggregators (Remote Rocketship, WWR, GitHub lists) only discover companies.
 - No automatic application submission, and no drafting answers for forms that forbid AI.
 - CV generation may only cite facts from the evidence store; never claim tech the owner has not used; the never-claim list lives in `private/`, not in tracked files.
