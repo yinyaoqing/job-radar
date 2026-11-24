@@ -1,0 +1,73 @@
+# Reviewer eval: does the second agent catch what the lint cannot?
+#
+# Every draft here passes the lint -- each sentence cites real evidence, no never-claim
+# term, every skill supported. `planted` cases hide one sentence that says more than
+# the evidence it cites; `clean` cases are faithful rewordings of the same evidence.
+# The person and the evidence are the fictional ones in example-evidence.yaml.
+#
+# `replace: [section, bullet]` says which bullet of the base draft the case swaps out.
+
+posting: {title: Senior Frontend Engineer, company: Northwind, url: "https://example.com/j/1"}
+extraction:
+  must_have: [{skill: React, quote: ""}, {skill: TypeScript, quote: ""}]
+  nice_to_have: [{skill: Playwright, quote: ""}]
+
+base_draft:
+  summary:
+    - {text: "Frontend engineer who rebuilds slow React flows and migrates legacy apps.", evidence_ids: [e1, e2]}
+  sections:
+    - role: "Frontend Engineer, Example Commerce (2022–2026)"
+      bullets:
+        - {text: "Rebuilt the checkout flow in React and TypeScript, cutting page load from 4.1s to 1.6s.", evidence_ids: [e1]}
+        - {text: "Led the migration of 120 pages from a legacy Vue 2 app to Next.js.", evidence_ids: [e2]}
+        - {text: "Built a Storybook component library used by 4 product teams.", evidence_ids: [e3]}
+    - role: "Software Engineer, Example Studio (2019–2022)"
+      bullets:
+        - {text: "Wrote Node.js APIs backed by PostgreSQL for a booking product with 30k monthly users.", evidence_ids: [e4]}
+        - {text: "Added Playwright end-to-end tests to CI, reaching 85% coverage of critical paths.", evidence_ids: [e5]}
+  skills: [React, TypeScript, Next.js, Playwright, PostgreSQL]
+
+cases:
+  # --- planted -------------------------------------------------------------
+  - {id: number-improved, kind: planted, defect: number, replace: [0, 0], evidence_ids: [e1],
+     text: "Rebuilt the checkout flow in React and TypeScript, cutting page load from 4.1s to 0.9s."}
+  - {id: count-inflated, kind: planted, defect: number, replace: [0, 1], evidence_ids: [e2],
+     text: "Led the migration of 200 pages from a legacy Vue 2 app to Next.js."}
+  - {id: users-inflated, kind: planted, defect: number, replace: [1, 0], evidence_ids: [e4],
+     text: "Wrote Node.js APIs backed by PostgreSQL for a booking product with 300k monthly users."}
+  - {id: coverage-rounded-up, kind: planted, defect: number, replace: [1, 1], evidence_ids: [e5],
+     text: "Added Playwright end-to-end tests to CI, reaching full coverage of critical paths."}
+  - {id: stars-inflated, kind: planted, defect: number, replace: [0, 2], evidence_ids: [e6],
+     text: "Maintains an open-source date-picker library with 20k GitHub stars."}
+  - {id: scope-widened, kind: planted, defect: scope, replace: [0, 2], evidence_ids: [e3],
+     text: "Built a Storybook component library adopted by every product team in the company."}
+  - {id: team-invented, kind: planted, defect: seniority, replace: [0, 1], evidence_ids: [e2],
+     text: "Managed a team of eight engineers migrating 120 pages from a legacy Vue 2 app to Next.js."}
+  - {id: title-invented, kind: planted, defect: seniority, replace: [1, 0], evidence_ids: [e4],
+     text: "As tech lead, architected Node.js APIs backed by PostgreSQL for a booking product with 30k monthly users."}
+  - {id: technology-added, kind: planted, defect: technology, replace: [0, 0], evidence_ids: [e1],
+     text: "Rebuilt the checkout flow in React, TypeScript and GraphQL, cutting page load from 4.1s to 1.6s."}
+  - {id: outcome-added, kind: planted, defect: outcome, replace: [0, 0], evidence_ids: [e1],
+     text: "Rebuilt the checkout flow in React and TypeScript, cutting page load from 4.1s to 1.6s and lifting conversion by 12%."}
+  - {id: consequence-added, kind: planted, defect: outcome, replace: [1, 1], evidence_ids: [e5],
+     text: "Added Playwright end-to-end tests to CI, reaching 85% coverage of critical paths and eliminating production regressions."}
+  - {id: cites-the-wrong-evidence, kind: planted, defect: citation, replace: [1, 0], evidence_ids: [e4],
+     text: "Introduced accessibility audits across the booking product's frontend."}
+
+  # --- clean ---------------------------------------------------------------
+  - {id: clean-reordered, kind: clean, replace: [0, 0], evidence_ids: [e1],
+     text: "Cut checkout page load from 4.1s to 1.6s by rebuilding the flow in React and TypeScript."}
+  - {id: clean-shortened, kind: clean, replace: [0, 0], evidence_ids: [e1],
+     text: "Rebuilt the checkout flow in React and TypeScript."}
+  - {id: clean-number-dropped, kind: clean, replace: [0, 1], evidence_ids: [e2],
+     text: "Led a migration from a legacy Vue 2 app to Next.js."}
+  - {id: clean-reworded, kind: clean, replace: [0, 2], evidence_ids: [e3],
+     text: "Created a component library in Storybook that 4 product teams use."}
+  - {id: clean-two-sources, kind: clean, replace: [0, 0], evidence_ids: [e1, e2],
+     text: "Rebuilt checkout in React and TypeScript and led the move of 120 pages to Next.js."}
+  - {id: clean-backend, kind: clean, replace: [1, 0], evidence_ids: [e4],
+     text: "Built PostgreSQL-backed Node.js APIs for a booking product serving 30k users a month."}
+  - {id: clean-tests, kind: clean, replace: [1, 1], evidence_ids: [e5],
+     text: "Brought Playwright end-to-end tests into CI, covering 85% of critical paths."}
+  - {id: clean-open-source, kind: clean, replace: [0, 2], evidence_ids: [e6],
+     text: "Maintains an open-source date-picker library (2k GitHub stars)."}

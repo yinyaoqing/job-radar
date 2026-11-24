@@ -1,0 +1,178 @@
+{
+  "cases": 20,
+  "planted": 12,
+  "clean": 8,
+  "recall": 1.0,
+  "false_alarm_rate": 0.0,
+  "missed": [],
+  "false_alarms": [],
+  "cost_usd": 0.0672,
+  "stopped_at_budget": false,
+  "rows": [
+    {
+      "id": "number-improved",
+      "kind": "planted",
+      "defect": "number",
+      "caught": true,
+      "flagged": [
+        "Rebuilt the checkout flow in React and TypeScript, cutting page load from 4.1s to 0.9s."
+      ]
+    },
+    {
+      "id": "count-inflated",
+      "kind": "planted",
+      "defect": "number",
+      "caught": true,
+      "flagged": [
+        "Led the migration of 200 pages from a legacy Vue 2 app to Next.js."
+      ]
+    },
+    {
+      "id": "users-inflated",
+      "kind": "planted",
+      "defect": "number",
+      "caught": true,
+      "flagged": [
+        "Wrote Node.js APIs backed by PostgreSQL for a booking product with 300k monthly users."
+      ]
+    },
+    {
+      "id": "coverage-rounded-up",
+      "kind": "planted",
+      "defect": "number",
+      "caught": true,
+      "flagged": [
+        "Added Playwright end-to-end tests to CI, reaching full coverage of critical paths."
+      ]
+    },
+    {
+      "id": "stars-inflated",
+      "kind": "planted",
+      "defect": "number",
+      "caught": true,
+      "flagged": [
+        "Maintains an open-source date-picker library with 20k GitHub stars."
+      ]
+    },
+    {
+      "id": "scope-widened",
+      "kind": "planted",
+      "defect": "scope",
+      "caught": true,
+      "flagged": [
+        "Built a Storybook component library adopted by every product team in the company."
+      ]
+    },
+    {
+      "id": "team-invented",
+      "kind": "planted",
+      "defect": "seniority",
+      "caught": true,
+      "flagged": [
+        "Managed a team of eight engineers migrating 120 pages from a legacy Vue 2 app to Next.js."
+      ]
+    },
+    {
+      "id": "title-invented",
+      "kind": "planted",
+      "defect": "seniority",
+      "caught": true,
+      "flagged": [
+        "As tech lead, architected Node.js APIs backed by PostgreSQL for a booking product with 30k monthly users."
+      ]
+    },
+    {
+      "id": "technology-added",
+      "kind": "planted",
+      "defect": "technology",
+      "caught": true,
+      "flagged": [
+        "Rebuilt the checkout flow in React, TypeScript and GraphQL, cutting page load from 4.1s to 1.6s."
+      ]
+    },
+    {
+      "id": "outcome-added",
+      "kind": "planted",
+      "defect": "outcome",
+      "caught": true,
+      "flagged": [
+        "Rebuilt the checkout flow in React and TypeScript, cutting page load from 4.1s to 1.6s and lifting conversion by 12%."
+      ]
+    },
+    {
+      "id": "consequence-added",
+      "kind": "planted",
+      "defect": "outcome",
+      "caught": true,
+      "flagged": [
+        "Added Playwright end-to-end tests to CI, reaching 85% coverage of critical paths and eliminating production regressions."
+      ]
+    },
+    {
+      "id": "cites-the-wrong-evidence",
+      "kind": "planted",
+      "defect": "citation",
+      "caught": true,
+      "flagged": [
+        "Introduced accessibility audits across the booking product's frontend."
+      ]
+    },
+    {
+      "id": "clean-reordered",
+      "kind": "clean",
+      "defect": null,
+      "caught": false,
+      "flagged": []
+    },
+    {
+      "id": "clean-shortened",
+      "kind": "clean",
+      "defect": null,
+      "caught": false,
+      "flagged": []
+    },
+    {
+      "id": "clean-number-dropped",
+      "kind": "clean",
+      "defect": null,
+      "caught": false,
+      "flagged": []
+    },
+    {
+      "id": "clean-reworded",
+      "kind": "clean",
+      "defect": null,
+      "caught": false,
+      "flagged": []
+    },
+    {
+      "id": "clean-two-sources",
+      "kind": "clean",
+      "defect": null,
+      "caught": false,
+      "flagged": []
+    },
+    {
+      "id": "clean-backend",
+      "kind": "clean",
+      "defect": null,
+      "caught": false,
+      "flagged": []
+    },
+    {
+      "id": "clean-tests",
+      "kind": "clean",
+      "defect": null,
+      "caught": false,
+      "flagged": []
+    },
+    {
+      "id": "clean-open-source",
+      "kind": "clean",
+      "defect": null,
+      "caught": false,
+      "flagged": []
+    }
+  ],
+  "model": "claude-sonnet-5-5"
+}

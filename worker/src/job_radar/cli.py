@@ -101,6 +101,14 @@ def main(argv: list[str] | None = None) -> int:
     p_cv.add_argument("--evidence", type=Path, required=True, help="evidence store YAML")
     p_cv.add_argument("--out", type=Path, default=Path("../private/cvs"))
     p_cv.add_argument("--pdf", action="store_true", help="also print a PDF with Chrome")
+    p_cv.add_argument(
+        "--review",
+        action="store_true",
+        help="writer and reviewer agents in a loop instead of one call (see cv_loop.py)",
+    )
+    p_cv.add_argument(
+        "--max-cost", type=float, default=0.5, help="USD budget for --review (default 0.5)"
+    )
 
     p_digest = sub.add_parser("digest", help="daily email of new postings you can apply to")
     p_digest.add_argument("--send", action="store_true", help="send it (needs SMTP_* settings)")
@@ -399,14 +407,38 @@ def _cv_command(args: argparse.Namespace, store) -> int:
     evidence = cv.EvidenceStore.load(args.evidence)
     posting = {"title": row["title"], "company": row["company"], "url": row["url"]}
     out_dir = args.out / args.posting.replace(":", "_")
+    loops: list = []
+    if args.review:
+        from . import cv_loop
+
+        writer = cv_loop.as_cv_writer(
+            evidence,
+            cv_loop.claude_writer(),
+            cv_loop.claude_reviewer(),
+            loops,
+            max_cost_usd=args.max_cost,
+        )
+    else:
+        writer = cv.claude_writer()
     result = cv.generate(
         posting,
         store.latest_extraction(row["id"], SCHEMA_VERSION),
         evidence,
-        cv.claude_writer(),
+        writer,
         out_dir,
         pdf=args.pdf,
     )
+    if loops:
+        import json
+
+        record = loops[0].as_dict()
+        (out_dir / "loop.json").write_text(
+            json.dumps(record, ensure_ascii=False, indent=2) + "\n", encoding="utf-8"
+        )
+        print(
+            f"review loop: {record['stopped']} after {len(record['rounds'])} round(s), "
+            f"US${record['cost_usd']:.4f}"
+        )
     lint = result.lint.as_dict()
     verdict = "PASS" if lint["passed"] else "FAIL"
     print(f"{verdict}  {out_dir}  evidence {', '.join(result.evidence_used)}")
